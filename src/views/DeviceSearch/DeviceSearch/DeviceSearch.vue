@@ -1,6 +1,5 @@
 <template>
-  <div class="device-search-page">
-    <!-- 控制面板 -->
+  <div class="device-search-page">    <!-- 控制面板 -->
     <div class="control-panel">
       <button @click="toggleSection('left')" :class="{ active: !hiddenSections.left }">
         {{ hiddenSections.left ? '显示' : '隐藏' }}参数区
@@ -17,7 +16,7 @@
     </div>
 
     <!-- 主内容区 -->
-    <div class="main-container">
+    <div class="main-container-big">
       <!-- 左侧参数区 -->
       <div
           class="section left-section"
@@ -218,11 +217,12 @@
 </template>
 
 <script>
-import { ref, reactive, onMounted, toRefs, nextTick } from 'vue';
+import { ref, reactive, onMounted, toRefs, nextTick, watchEffect } from 'vue';
 import { searchBrickDevices, searchTransportDevices, searchTransferDevices, searchLiftDevices, exportSelectedDevices } from '@/api/device';
 
 export default {
   setup() {
+
     // 状态管理
     const state = reactive({
       // 布局状态
@@ -312,7 +312,7 @@ export default {
     const handleResize = (event) => {
       if (!resizing.value.isResizing) return;
 
-      const containerWidth = document.querySelector('.main-container').offsetWidth;
+      const containerWidth = document.querySelector('.main-container-big').offsetWidth;
       const deltaX = (event.pageX - resizing.value.startX) / containerWidth * 100;
 
       if (resizing.value.type === 'left') {
@@ -534,12 +534,12 @@ export default {
 
 .export-btn {
   margin-left: auto;
-  background-color: #67c23a;
-  color: white;
-  border-color: #67c23a;
+  background-color: #409eff;
+  color: orange;
+  border-color: #409eff;
 }
 
-.main-container {
+.main-container-big {
   display: flex;
   flex: 1;
   overflow: hidden;
@@ -621,4 +621,6 @@ export default {
 .el-table {
   width: 100% !important;
 }
+
+
 </style>
