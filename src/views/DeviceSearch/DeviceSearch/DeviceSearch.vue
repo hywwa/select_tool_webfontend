@@ -1,5 +1,6 @@
 <template>
-  <div class="device-search-page">    <!-- 控制面板 -->
+  <div class="device-search-page">
+    <!-- 控制面板 -->
     <div class="control-panel">
       <button @click="toggleSection('left')" :class="{ active: !hiddenSections.left }">
         {{ hiddenSections.left ? '显示' : '隐藏' }}参数区
@@ -25,7 +26,7 @@
       >
         <div class="param-form">
           <h3>砖机设备参数</h3>
-          <el-form ref="form" :model="form" label-width="100px">
+          <el-form ref="formRef" :model="form" label-width="100px">
             <el-form-item label="适用砖规格">
               <el-select v-model="form.suitType" placeholder="请选择适用砖规格">
                 <el-option label="≤900" value="≤900"></el-option>
@@ -216,288 +217,341 @@
   </div>
 </template>
 
-<script>
-import { ref, reactive, onMounted, toRefs, nextTick, watchEffect } from 'vue';
-import { searchBrickDevices, searchTransportDevices, searchTransferDevices, searchLiftDevices, exportSelectedDevices } from '@/api/device';
+<script setup name="DeviceSearch">
+import {ref, reactive, onMounted, toRefs, nextTick, warn} from 'vue';
+import { getCurrentInstance } from 'vue';
+import {
+  exportSelectedDevices, searchBrickDevices,
+  searchLiftDevices,
+  searchTransferDevices,
+  searchTransportDevices
+} from "../../../api/device.js";
+import axios from "axios";
+import request from "../../../utils/request.js";
+import {ElMessage} from "element-plus";
 
-export default {
-  setup() {
+// 获取当前实例
+const { proxy } = getCurrentInstance();
 
-    // 状态管理
-    const state = reactive({
-      // 布局状态
-      hiddenSections: { left: false, middle: false, right: false },
-      leftWidth: '30%',
-      middleWidth: '40%',
-      rightWidth: '30%',
-      minWidth: 200, // 最小宽度限制
+// 布局状态
+const hiddenSections = ref({ left: false, middle: false, right: false });
+const leftWidth = ref('30%');
+const middleWidth = ref('40%');
+const rightWidth = ref('30%');
+const minWidth = ref(200); // 最小宽度限制
 
-      // 表单数据
-      form: {
-        suitType: '',
-        type: ''
-      },
+// 表单数据
+const form = reactive({
+  suitType: '',
+  type: ''
+});
+const formRef = ref(null);
 
-      // 标签页状态
-      activeTab: 'brick',
+// 标签页状态
+const activeTab = ref('brick');
 
-      // 设备数据
-      brickDevices: [],
-      transportDevices: [],
-      transferDevices: [],
-      liftDevices: [],
-      selectedDevices: []
-    });
+// 设备数据
+const brickDevices = ref([]);
+const transportDevices = ref([]);
+const transferDevices = ref([]);
+const liftDevices = ref([]);
+const selectedDevices = ref([]);
 
-    // 引用
-    const leftSection = ref(null);
-    const middleSection = ref(null);
-    const rightSection = ref(null);
-    const resizing = ref({
-      isResizing: false,
-      type: null,
-      startX: 0,
-      startWidth: 0,
-      otherWidth: 0
-    });
+// 引用
+const leftSection = ref(null);
+const middleSection = ref(null);
+const rightSection = ref(null);
+const resizing = ref({
+  isResizing: false,
+  type: null,
+  startX: 0,
+  startWidth: 0,
+  otherWidth: 0
+});
 
-    // 切换区域显示/隐藏
-    const toggleSection = (section) => {
-      state.hiddenSections[section] = !state.hiddenSections[section];
-      adjustSectionWidths();
-    };
+// 切换区域显示/隐藏
+const toggleSection = (section) => {
+  hiddenSections.value[section] = !hiddenSections.value[section];
+  adjustSectionWidths();
+};
 
-    // 调整区域宽度
-    const adjustSectionWidths = () => {
-      const visibleSections = Object.keys(state.hiddenSections).filter(key => !state.hiddenSections[key]);
-      if (visibleSections.length === 0) return;
+// 调整区域宽度
+const adjustSectionWidths = () => {
+  const visibleSections = Object.keys(hiddenSections.value).filter(key => !hiddenSections.value[key]);
+  if (visibleSections.length === 0) return;
 
-      // 计算总可见宽度百分比
-      const totalVisible = visibleSections.reduce((sum, section) => {
-        return sum + parseFloat(state[`${section}Width`]);
-      }, 0);
+  // 计算总可见宽度百分比
+  const totalVisible = visibleSections.reduce((sum, section) => {
+    const widthRef = {
+      left: leftWidth,
+      middle: middleWidth,
+      right: rightWidth
+    }[section];
+    return sum + parseFloat(widthRef.value);
+  }, 0);
 
-      // 计算每个可见区域应占的百分比
-      const widthPercentage = 100 / visibleSections.length;
+  // 计算每个可见区域应占的百分比
+  const widthPercentage = 100 / visibleSections.length;
 
-      // 应用新宽度
-      visibleSections.forEach(section => {
-        state[`${section}Width`] = `${widthPercentage}%`;
-      });
-    };
+  // 应用新宽度
+  visibleSections.forEach(section => {
+    const widthRef = {
+      left: leftWidth,
+      middle: middleWidth,
+      right: rightWidth
+    }[section];
+    widthRef.value = `${widthPercentage}%`;
+  });
+};
 
-    // 开始调整宽度
-    const startResize = (type) => {
-      resizing.value.isResizing = true;
-      resizing.value.type = type;
-      resizing.value.startX = event.pageX;
+// 开始调整宽度
+const startResize = (type) => {
+  resizing.value.isResizing = true;
+  resizing.value.type = type;
+  resizing.value.startX = event.pageX;
 
-      if (type === 'left') {
-        resizing.value.startWidth = parseFloat(state.leftWidth);
-        resizing.value.otherWidth = parseFloat(state.middleWidth);
-      } else {
-        resizing.value.startWidth = parseFloat(state.middleWidth);
-        resizing.value.otherWidth = parseFloat(state.rightWidth);
-      }
+  if (type === 'left') {
+    resizing.value.startWidth = parseFloat(leftWidth.value);
+    resizing.value.otherWidth = parseFloat(middleWidth.value);
+  } else {
+    resizing.value.startWidth = parseFloat(middleWidth.value);
+    resizing.value.otherWidth = parseFloat(rightWidth.value);
+  }
 
-      // 添加事件监听
-      document.addEventListener('mousemove', handleResize);
-      document.addEventListener('mouseup', stopResize);
+  // 添加事件监听
+  document.addEventListener('mousemove', handleResize);
+  document.addEventListener('mouseup', stopResize);
 
-      // 防止选择文本
-      event.preventDefault();
-    };
+  // 防止选择文本
+  event.preventDefault();
+};
 
-    // 处理调整宽度
-    const handleResize = (event) => {
-      if (!resizing.value.isResizing) return;
+// 处理调整宽度
+const handleResize = (event) => {
+  if (!resizing.value.isResizing) return;
 
-      const containerWidth = document.querySelector('.main-container-big').offsetWidth;
-      const deltaX = (event.pageX - resizing.value.startX) / containerWidth * 100;
+  const containerWidth = document.querySelector('.main-container-big').offsetWidth;
+  const deltaX = (event.pageX - resizing.value.startX) / containerWidth * 100;
 
-      if (resizing.value.type === 'left') {
-        // 调整左侧和中间宽度
-        let newLeftWidth = resizing.value.startWidth + deltaX;
-        let newMiddleWidth = resizing.value.otherWidth - deltaX;
+  if (resizing.value.type === 'left') {
+    // 调整左侧和中间宽度
+    let newLeftWidth = resizing.value.startWidth + deltaX;
+    let newMiddleWidth = resizing.value.otherWidth - deltaX;
 
-        // 应用最小宽度限制
-        if (newLeftWidth < state.minWidth / containerWidth * 100) {
-          newLeftWidth = state.minWidth / containerWidth * 100;
-          newMiddleWidth = 100 - newLeftWidth - parseFloat(state.rightWidth);
-        }
+    // 应用最小宽度限制
+    if (newLeftWidth < minWidth.value / containerWidth * 100) {
+      newLeftWidth = minWidth.value / containerWidth * 100;
+      newMiddleWidth = 100 - newLeftWidth - parseFloat(rightWidth.value);
+    }
 
-        if (newMiddleWidth < state.minWidth / containerWidth * 100) {
-          newMiddleWidth = state.minWidth / containerWidth * 100;
-          newLeftWidth = 100 - newMiddleWidth - parseFloat(state.rightWidth);
-        }
+    if (newMiddleWidth < minWidth.value / containerWidth * 100) {
+      newMiddleWidth = minWidth.value / containerWidth * 100;
+      newLeftWidth = 100 - newMiddleWidth - parseFloat(rightWidth.value);
+    }
 
-        state.leftWidth = `${newLeftWidth}%`;
-        state.middleWidth = `${newMiddleWidth}%`;
-      } else {
-        // 调整中间和右侧宽度
-        let newMiddleWidth = resizing.value.startWidth + deltaX;
-        let newRightWidth = resizing.value.otherWidth - deltaX;
+    leftWidth.value = `${newLeftWidth}%`;
+    middleWidth.value = `${newMiddleWidth}%`;
+  } else {
+    // 调整中间和右侧宽度
+    let newMiddleWidth = resizing.value.startWidth + deltaX;
+    let newRightWidth = resizing.value.otherWidth - deltaX;
 
-        // 应用最小宽度限制
-        if (newMiddleWidth < state.minWidth / containerWidth * 100) {
-          newMiddleWidth = state.minWidth / containerWidth * 100;
-          newRightWidth = 100 - newMiddleWidth - parseFloat(state.leftWidth);
-        }
+    // 应用最小宽度限制
+    if (newMiddleWidth < minWidth.value / containerWidth * 100) {
+      newMiddleWidth = minWidth.value / containerWidth * 100;
+      newRightWidth = 100 - newMiddleWidth - parseFloat(leftWidth.value);
+    }
 
-        if (newRightWidth < state.minWidth / containerWidth * 100) {
-          newRightWidth = state.minWidth / containerWidth * 100;
-          newMiddleWidth = 100 - newRightWidth - parseFloat(state.leftWidth);
-        }
+    if (newRightWidth < minWidth.value / containerWidth * 100) {
+      newRightWidth = minWidth.value / containerWidth * 100;
+      newMiddleWidth = 100 - newRightWidth - parseFloat(leftWidth.value);
+    }
 
-        state.middleWidth = `${newMiddleWidth}%`;
-        state.rightWidth = `${newRightWidth}%`;
-      }
-    };
-
-    // 停止调整宽度
-    const stopResize = () => {
-      resizing.value.isResizing = false;
-      document.removeEventListener('mousemove', handleResize);
-      document.removeEventListener('mouseup', stopResize);
-    };
-
-    // 搜索设备
-    const searchDevices = async () => {
-      try {
-        const response = await searchBrickDevices(state.form);
-        state.brickDevices = response.rows.map(item => ({ ...item, quantity: 1 }));
-        state.activeTab = 'brick';
-      } catch (error) {
-        console.error('搜索设备失败:', error);
-      }
-    };
-
-    // 重置表单
-    const resetForm = () => {
-      state.form = {
-        suitType: '',
-        type: ''
-      };
-    };
-
-    // 选择设备
-    const selectDevice = (device, type) => {
-      let deviceInfo = {};
-
-      switch(type) {
-        case 'brick':
-          deviceInfo = {
-            id: device.id,
-            type: '砖机',
-            code: device.code,
-            name: device.goodDes,
-            quantity: device.quantity
-          };
-          break;
-        case 'transport':
-          deviceInfo = {
-            id: device.id,
-            type: '运输车',
-            code: device.goodCode,
-            name: device.goodDescription,
-            quantity: device.quantity
-          };
-          break;
-        case 'transfer':
-          deviceInfo = {
-            id: device.id,
-            type: '摆渡车',
-            code: device.goodCode,
-            name: device.descxxtion,
-            quantity: device.quantity
-          };
-          break;
-        case 'lift':
-          deviceInfo = {
-            id: device.id,
-            type: '拍齐顶升',
-            code: device.codeGood,
-            name: device.goodDescriptin,
-            quantity: device.quantity
-          };
-          break;
-      }
-
-      // 检查是否已选择该设备
-      const existingIndex = state.selectedDevices.findIndex(
-          item => item.id === deviceInfo.id && item.type === deviceInfo.type
-      );
-
-      if (existingIndex > -1) {
-        // 更新数量
-        state.selectedDevices[existingIndex].quantity = deviceInfo.quantity;
-      } else {
-        // 添加新设备
-        state.selectedDevices.push(deviceInfo);
-      }
-    };
-
-    // 移除设备
-    const removeDevice = (index) => {
-      state.selectedDevices.splice(index, 1);
-    };
-
-    // 导出已选设备
-    const exportSelected = async () => {
-      try {
-        await exportSelectedDevices(state.selectedDevices);
-      } catch (error) {
-        console.error('导出失败:', error);
-      }
-    };
-
-    // 初始化其他设备列表
-    const initOtherDevices = async () => {
-      try {
-        const [transportRes, transferRes, liftRes] = await Promise.all([
-          searchTransportDevices({}),
-          searchTransferDevices({}),
-          searchLiftDevices({})
-        ]);
-
-        state.transportDevices = transportRes.rows.map(item => ({ ...item, quantity: 1 }));
-        state.transferDevices = transferRes.rows.map(item => ({ ...item, quantity: 1 }));
-        state.liftDevices = liftRes.rows.map(item => ({ ...item, quantity: 1 }));
-      } catch (error) {
-        console.error('初始化其他设备失败:', error);
-      }
-    };
-
-    // 窗口大小变化时重新计算宽度
-    const handleWindowResize = () => {
-      adjustSectionWidths();
-    };
-
-    onMounted(() => {
-      initOtherDevices();
-      window.addEventListener('resize', handleWindowResize);
-
-      // 初始化宽度，防止出现0宽度问题
-      nextTick(() => {
-        adjustSectionWidths();
-      });
-    });
-
-    return {
-      ...toRefs(state),
-      leftSection,
-      middleSection,
-      rightSection,
-      toggleSection,
-      startResize,
-      searchDevices,
-      resetForm,
-      selectDevice,
-      removeDevice,
-      exportSelected
-    };
+    middleWidth.value = `${newMiddleWidth}%`;
+    rightWidth.value = `${newRightWidth}%`;
   }
 };
+
+// 停止调整宽度
+const stopResize = () => {
+  resizing.value.isResizing = false;
+  document.removeEventListener('mousemove', handleResize);
+  document.removeEventListener('mouseup', stopResize);
+};
+
+// 搜索设备
+const searchDevices = async () => {
+  try {
+    const response = await searchBrickDevices(form);
+    brickDevices.value = response.rows.map(item => ({ ...item, quantity: 1 }));
+    activeTab.value = 'brick';
+  } catch (error) {
+    console.error('搜索设备失败:', error);
+  }
+};
+
+// 重置表单
+const resetForm = () => {
+  form.suitType = '';
+  form.type = '';
+};
+
+// 选择设备
+const selectDevice = (device, type) => {
+  let deviceInfo = {};
+
+  switch (type) {
+    case 'brick':
+      deviceInfo = {
+        id: device.id,
+        type: '砖机',
+        code: device.code,
+        name: device.goodDes,
+        quantity: device.quantity
+      };
+      break;
+    case 'transport':
+      deviceInfo = {
+        id: device.id,
+        type: '运输车',
+        code: device.goodCode,
+        name: device.goodDescription,
+        quantity: device.quantity
+      };
+      break;
+    case 'transfer':
+      deviceInfo = {
+        id: device.id,
+        type: '摆渡车',
+        code: device.goodCode,
+        name: device.descxxtion,
+        quantity: device.quantity
+      };
+      break;
+    case 'lift':
+      deviceInfo = {
+        id: device.id,
+        type: '拍齐顶升',
+        code: device.codeGood,
+        name: device.goodDescriptin,
+        quantity: device.quantity
+      };
+      break;
+  }
+
+  // 检查是否已选择该设备
+  const existingIndex = selectedDevices.value.findIndex(
+      item => item.id === deviceInfo.id && item.type === deviceInfo.type
+  );
+
+  if (existingIndex > -1) {
+    // 更新数量
+    selectedDevices.value[existingIndex].quantity = deviceInfo.quantity;
+  } else {
+    // 添加新设备
+    selectedDevices.value.push(deviceInfo);
+  }
+};
+
+// 移除设备
+const removeDevice = (index) => {
+  selectedDevices.value.splice(index, 1);
+};
+
+//导出选好的设备
+const exportSelected = async () => {
+  try {
+    if (selectedDevices.value.length === 0) {
+      ElMessage.error('请至少选择一条数据');
+      return;
+    }
+
+    // 获取原始数据
+    const rawData = selectedDevices.value.map(item => toRaw(item));
+
+    // 使用axios下载文件（关键：设置responseType为'blob'）
+    const response = await axios.post(
+        '/api/device/transport/export-selected',
+        { deviceIds: rawData.map(item => item.goodCode) },
+        {
+          responseType: 'blob', // 必须设置为blob，否则无法处理二进制数据
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+    );
+
+    // 创建下载链接
+    const fileName = `selected_devices_${new Date().getTime()}.xlsx`;
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+
+    // 清理
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(link);
+
+    ElMessage.success('导出成功');
+
+  } catch (error) {
+    console.error('导出失败:', error);
+
+    // 处理错误响应（当后端返回错误信息时）
+    if (error.response && error.response.data) {
+      try {
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const errorMsg = JSON.parse(reader.result).message;
+            ElMessage.error(`导出失败: ${errorMsg}`);
+          } catch (e) {
+            ElMessage.error('导出失败: 服务器返回无效数据');
+          }
+        };
+        reader.readAsText(error.response.data);
+      } catch (e) {
+        ElMessage.error('导出失败: 无法解析错误信息');
+      }
+    } else {
+      ElMessage.error(`导出失败: ${error.message || '未知错误'}`);
+    }
+  }
+}
+
+// 初始化其他设备列表
+const initOtherDevices = async () => {
+  try {
+    const [transportRes, transferRes, liftRes] = await Promise.all([
+      searchTransportDevices({}),
+      searchTransferDevices({}),
+      searchLiftDevices({})
+    ]);
+
+    transportDevices.value = transportRes.rows.map(item => ({ ...item, quantity: 1 }));
+    transferDevices.value = transferRes.rows.map(item => ({ ...item, quantity: 1 }));
+    liftDevices.value = liftRes.rows.map(item => ({ ...item, quantity: 1 }));
+  } catch (error) {
+    console.error('初始化其他设备失败:', error);
+  }
+};
+
+// 窗口大小变化时重新计算宽度
+const handleWindowResize = () => {
+  adjustSectionWidths();
+};
+
+onMounted(() => {
+  initOtherDevices();
+  window.addEventListener('resize', handleWindowResize);
+
+  // 初始化宽度，防止出现0宽度问题
+  nextTick(() => {
+    adjustSectionWidths();
+  });
+});
 </script>
 
 <style scoped>
@@ -621,6 +675,4 @@ export default {
 .el-table {
   width: 100% !important;
 }
-
-
 </style>

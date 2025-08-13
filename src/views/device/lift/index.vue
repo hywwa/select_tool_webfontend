@@ -1,9 +1,17 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="物料编码" prop="codeGood">
+      <el-form-item label="自增主键" prop="id">
         <el-input
-          v-model="queryParams.codeGood"
+          v-model="queryParams.id"
+          placeholder="请输入自增主键"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="物料编码" prop="goodCode">
+        <el-input
+          v-model="queryParams.goodCode"
           placeholder="请输入物料编码"
           clearable
           @keyup.enter="handleQuery"
@@ -81,9 +89,9 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="挡砖胶皮厚度" prop="gmaa">
+      <el-form-item label="挡砖胶皮厚度" prop="stopThick">
         <el-input
-          v-model="queryParams.gmaa"
+          v-model="queryParams.stopThick"
           placeholder="请输入挡砖胶皮厚度"
           clearable
           @keyup.enter="handleQuery"
@@ -140,7 +148,7 @@
     <el-table v-loading="loading" :data="liftList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="自增主键" align="center" prop="id" />
-      <el-table-column label="物料编码" align="center" prop="codeGood" />
+      <el-table-column label="物料编码" align="center" prop="goodCode" />
       <el-table-column label="物料描述" align="center" prop="goodDescriptin" />
       <el-table-column label="适用砖宽度范围" align="center" prop="suitWidth" />
       <el-table-column label="适用砖厚度" align="center" prop="suitThick" />
@@ -152,9 +160,9 @@
       <el-table-column label="拍齐轮个数" align="center" prop="liftLunNum" />
       <el-table-column label="导向形式" align="center" prop="gpsMode" />
       <el-table-column label="导向滑块" align="center" prop="gpsHk" />
-      <el-table-column label="挡砖胶皮厚度" align="center" prop="gmaa" />
-      <el-table-column label="备注" align="center" prop="gmaaak" />
-      <el-table-column label="在用项目" align="center" prop="gkaaa" />
+      <el-table-column label="挡砖胶皮厚度" align="center" prop="stopThick" />
+      <el-table-column label="备注" align="center" prop="note" />
+      <el-table-column label="在用项目" align="center" prop="useProject" />
       <el-table-column label="更新时间" align="center" prop="updateTime" width="180">
         <template #default="scope">
           <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
@@ -179,8 +187,8 @@
     <!-- 添加或修改拍齐顶升对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="liftRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="物料编码" prop="codeGood">
-          <el-input v-model="form.codeGood" placeholder="请输入物料编码" />
+        <el-form-item label="物料编码" prop="goodCode">
+          <el-input v-model="form.goodCode" placeholder="请输入物料编码" />
         </el-form-item>
         <el-form-item label="物料描述" prop="goodDescriptin">
           <el-input v-model="form.goodDescriptin" placeholder="请输入物料描述" />
@@ -209,14 +217,14 @@
         <el-form-item label="导向形式" prop="gpsMode">
           <el-input v-model="form.gpsMode" placeholder="请输入导向形式" />
         </el-form-item>
-        <el-form-item label="挡砖胶皮厚度" prop="gmaa">
-          <el-input v-model="form.gmaa" placeholder="请输入挡砖胶皮厚度" />
+        <el-form-item label="挡砖胶皮厚度" prop="stopThick">
+          <el-input v-model="form.stopThick" placeholder="请输入挡砖胶皮厚度" />
         </el-form-item>
-        <el-form-item label="备注" prop="gmaaak">
-          <el-input v-model="form.gmaaak" type="textarea" placeholder="请输入内容" />
+        <el-form-item label="备注" prop="note">
+          <el-input v-model="form.note" type="textarea" placeholder="请输入内容" />
         </el-form-item>
-        <el-form-item label="在用项目" prop="gkaaa">
-          <el-input v-model="form.gkaaa" type="textarea" placeholder="请输入内容" />
+        <el-form-item label="在用项目" prop="useProject">
+          <el-input v-model="form.useProject" type="textarea" placeholder="请输入内容" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -249,7 +257,8 @@ const data = reactive({
   queryParams: {
     pageNum: 1,
     pageSize: 10,
-    codeGood: null,
+    id: null,
+    goodCode: null,
     goodDescriptin: null,
     suitWidth: null,
     suitThick: null,
@@ -261,9 +270,9 @@ const data = reactive({
     liftLunNum: null,
     gpsMode: null,
     gpsHk: null,
-    gmaa: null,
-    gmaaak: null,
-    gkaaa: null,
+    stopThick: null,
+    note: null,
+    useProject: null,
   },
   rules: {
   }
@@ -291,7 +300,7 @@ function cancel() {
 function reset() {
   form.value = {
     id: null,
-    codeGood: null,
+    goodCode: null,
     goodDescriptin: null,
     suitWidth: null,
     suitThick: null,
@@ -303,9 +312,9 @@ function reset() {
     liftLunNum: null,
     gpsMode: null,
     gpsHk: null,
-    gmaa: null,
-    gmaaak: null,
-    gkaaa: null,
+    stopThick: null,
+    note: null,
+    useProject: null,
     updateTime: null
   }
   proxy.resetForm("liftRef")

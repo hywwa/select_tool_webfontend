@@ -1,6 +1,14 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
+      <el-form-item label="自增主键" prop="id">
+        <el-input
+          v-model="queryParams.id"
+          placeholder="请输入自增主键"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
       <el-form-item label="物料编码" prop="goodCode">
         <el-input
           v-model="queryParams.goodCode"
@@ -49,14 +57,6 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="测试布尔" prop="testBool">
-        <el-input
-          v-model="queryParams.testBool"
-          placeholder="请输入测试布尔"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
       <el-form-item label="顶升结构" prop="swifArchitech">
         <el-input
           v-model="queryParams.swifArchitech"
@@ -85,14 +85,6 @@
         <el-input
           v-model="queryParams.hsControl"
           placeholder="请输入是否带电气控制系统"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="test_length" prop="testLength">
-        <el-input
-          v-model="queryParams.testLength"
-          placeholder="请输入test_length"
           clearable
           @keyup.enter="handleQuery"
         />
@@ -155,7 +147,6 @@
       <el-table-column label="托升支架宽度" align="center" prop="tsWidth" />
       <el-table-column label="托升支架形式" align="center" prop="tsType" />
       <el-table-column label="定位模式" align="center" prop="gpsMode" />
-      <el-table-column label="测试布尔" align="center" prop="testBool" />
       <el-table-column label="电力形式" align="center" prop="elecMode" />
       <el-table-column label="顶升结构" align="center" prop="swifArchitech" />
       <el-table-column label="顶升电机" align="center" prop="liftMachine" />
@@ -163,7 +154,6 @@
       <el-table-column label="是否带电气控制系统" align="center" prop="hsControl" />
       <el-table-column label="备注" align="center" prop="note" />
       <el-table-column label="在用项目" align="center" prop="useProject" />
-      <el-table-column label="test_length" align="center" prop="testLength" />
       <el-table-column label="更新时间" align="center" prop="updateTime" width="180">
         <template #default="scope">
           <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
@@ -206,9 +196,6 @@
         <el-form-item label="定位模式" prop="gpsMode">
           <el-input v-model="form.gpsMode" placeholder="请输入定位模式" />
         </el-form-item>
-        <el-form-item label="测试布尔" prop="testBool">
-          <el-input v-model="form.testBool" placeholder="请输入测试布尔" />
-        </el-form-item>
         <el-form-item label="顶升结构" prop="swifArchitech">
           <el-input v-model="form.swifArchitech" placeholder="请输入顶升结构" />
         </el-form-item>
@@ -226,9 +213,6 @@
         </el-form-item>
         <el-form-item label="在用项目" prop="useProject">
           <el-input v-model="form.useProject" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-form-item label="test_length" prop="testLength">
-          <el-input v-model="form.testLength" placeholder="请输入test_length" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -261,6 +245,7 @@ const data = reactive({
   queryParams: {
     pageNum: 1,
     pageSize: 10,
+    id: null,
     goodCode: null,
     goodDescription: null,
     lengthCar: null,
@@ -268,7 +253,6 @@ const data = reactive({
     tsWidth: null,
     tsType: null,
     gpsMode: null,
-    testBool: null,
     elecMode: null,
     swifArchitech: null,
     liftMachine: null,
@@ -276,7 +260,6 @@ const data = reactive({
     hsControl: null,
     note: null,
     useProject: null,
-    testLength: null,
   },
   rules: {
   }
@@ -311,7 +294,6 @@ function reset() {
     tsWidth: null,
     tsType: null,
     gpsMode: null,
-    testBool: null,
     elecMode: null,
     swifArchitech: null,
     liftMachine: null,
@@ -319,7 +301,6 @@ function reset() {
     hsControl: null,
     note: null,
     useProject: null,
-    testLength: null,
     updateTime: null
   }
   proxy.resetForm("transportRef")

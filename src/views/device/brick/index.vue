@@ -9,9 +9,9 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="物料编码" prop="code">
+      <el-form-item label="物料编码" prop="goodCode">
         <el-input
-          v-model="queryParams.code"
+          v-model="queryParams.goodCode"
           placeholder="请输入物料编码"
           clearable
           @keyup.enter="handleQuery"
@@ -169,11 +169,11 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="brickList" @selection-change="handleSelectionChange" class="table-ellipsis">
+    <el-table v-loading="loading" :data="brickList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="自增主键" align="center" prop="id" />
-      <el-table-column label="物料编码" align="center" prop="code" width="110px" />
-      <EllipsisTableColumn label="物料描述" align="center" prop="goodDes" />
+      <el-table-column label="物料编码" align="center" prop="goodCode" />
+      <el-table-column label="物料描述" align="center" prop="goodDes" />
       <el-table-column label="适用砖规格" align="center" prop="suitType" />
       <el-table-column label="移砖行程" align="center" prop="moveLength" />
       <el-table-column label="样式" align="center" prop="type" />
@@ -191,9 +191,9 @@
       <el-table-column label="真空发生器数量" align="center" prop="jkNum" />
       <el-table-column label="真空发生器型号" align="center" prop="jkType" />
       <el-table-column label="叉砖口内空" align="center" prop="xzhuanK" />
-      <EllipsisTableColumn label="备注1" align="center" prop="note" />
+      <el-table-column label="备注1" align="center" prop="note" />
       <el-table-column label="项目地址" align="center" prop="usePlace" />
-      <EllipsisTableColumn label="备注2" align="center" prop="note2" />
+      <el-table-column label="备注2" align="center" prop="note2" />
       <el-table-column label="更新时间" align="center" prop="updateTime" width="180">
         <template #default="scope">
           <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
@@ -218,8 +218,8 @@
     <!-- 添加或修改砖机对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="brickRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="物料编码" prop="code">
-          <el-input v-model="form.code" placeholder="请输入物料编码" />
+        <el-form-item label="物料编码" prop="goodCode">
+          <el-input v-model="form.goodCode" placeholder="请输入物料编码" />
         </el-form-item>
         <el-form-item label="物料描述" prop="goodDes">
           <el-input v-model="form.goodDes" placeholder="请输入物料描述" />
@@ -282,7 +282,6 @@
 
 <script setup name="Brick">
 import { listBrick, getBrick, delBrick, addBrick, updateBrick } from "@/api/device/brick"
-import EllipsisTableColumn from "../../common/EllipsisTableColumn.vue";
 
 const { proxy } = getCurrentInstance()
 
@@ -302,7 +301,7 @@ const data = reactive({
     pageNum: 1,
     pageSize: 10,
     id: null,
-    code: null,
+    goodCode: null,
     goodDes: null,
     suitType: null,
     moveLength: null,
@@ -351,7 +350,7 @@ function cancel() {
 function reset() {
   form.value = {
     id: null,
-    code: null,
+    goodCode: null,
     goodDes: null,
     suitType: null,
     moveLength: null,

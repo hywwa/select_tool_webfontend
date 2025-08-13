@@ -1,6 +1,14 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
+      <el-form-item label="自增主键" prop="id">
+        <el-input
+          v-model="queryParams.id"
+          placeholder="请输入自增主键"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
       <el-form-item label="物料编码" prop="goodCode">
         <el-input
           v-model="queryParams.goodCode"
@@ -169,11 +177,6 @@
       <el-table-column label="是否带电气控制系统" align="center" prop="hasEleContro" />
       <el-table-column label="备注" align="center" prop="note" />
       <el-table-column label="在用项目" align="center" prop="usePro" />
-      <el-table-column label="更新时间" align="center" prop="updateTime" width="180">
-        <template #default="scope">
-          <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
-        </template>
-      </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['device:transfer:edit']">修改</el-button>
@@ -263,6 +266,7 @@ const data = reactive({
   queryParams: {
     pageNum: 1,
     pageSize: 10,
+    id: null,
     goodCode: null,
     descxxtion: null,
     longToall: null,
