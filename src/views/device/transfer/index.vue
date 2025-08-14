@@ -177,6 +177,11 @@
       <el-table-column label="是否带电气控制系统" align="center" prop="hasEleContro" />
       <el-table-column label="备注" align="center" prop="note" />
       <el-table-column label="在用项目" align="center" prop="usePro" />
+      <el-table-column label="更新时间" align="center" prop="updateTime" width="180">
+        <template #default="scope">
+          <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['device:transfer:edit']">修改</el-button>

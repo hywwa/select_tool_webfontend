@@ -121,6 +121,14 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
+      <el-form-item label="更新时间" prop="updateTime">
+        <el-date-picker clearable
+          v-model="queryParams.updateTime"
+          type="date"
+          value-format="YYYY-MM-DD"
+          placeholder="请选择更新时间">
+        </el-date-picker>
+      </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -323,6 +331,7 @@ const data = reactive({
     note: null,
     usePlace: null,
     note2: null,
+    updateTime: null
   },
   rules: {
   }

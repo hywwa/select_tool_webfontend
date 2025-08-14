@@ -77,11 +77,12 @@
                   ></el-input-number>
                 </template>
               </el-table-column>
-              <el-table-column prop="code" label="物料编码"></el-table-column>
+              <el-table-column prop="goodCode" label="物料编码"></el-table-column>
               <el-table-column prop="goodDes" label="物料描述"></el-table-column>
               <el-table-column prop="suitType" label="适用砖规格"></el-table-column>
               <el-table-column prop="type" label="样式"></el-table-column>
               <el-table-column prop="moveLength" label="移砖行程"></el-table-column>
+              <el-table-column prop="note" label="备注"></el-table-column>
               <el-table-column label="操作">
                 <template #default="scope">
                   <el-button
@@ -109,7 +110,10 @@
               <el-table-column prop="goodCode" label="物料编码"></el-table-column>
               <el-table-column prop="goodDescription" label="物料描述"></el-table-column>
               <el-table-column prop="lengthCar" label="车长"></el-table-column>
-              <el-table-column prop="tsType" label="台车类型"></el-table-column>
+              <el-table-column prop="tsLength" label="托升支架长"></el-table-column>
+              <el-table-column prop="tsType" label="托升支架形式"></el-table-column>
+              <el-table-column prop="elecMode" label="电力形式"></el-table-column>
+              <el-table-column prop="note" label="备注"></el-table-column>
               <el-table-column label="操作">
                 <template #default="scope">
                   <el-button
@@ -137,6 +141,8 @@
               <el-table-column prop="goodCode" label="物料编码"></el-table-column>
               <el-table-column prop="descxxtion" label="描述"></el-table-column>
               <el-table-column prop="longToall" label="总长"></el-table-column>
+              <el-table-column prop="kWidth" label="坑宽"></el-table-column>
+              <el-table-column prop="note" label="备注"></el-table-column>
               <el-table-column label="操作">
                 <template #default="scope">
                   <el-button
@@ -161,9 +167,11 @@
                   ></el-input-number>
                 </template>
               </el-table-column>
-              <el-table-column prop="codeGood" label="物料编码"></el-table-column>
+              <el-table-column prop="goodCode" label="物料编码"></el-table-column>
               <el-table-column prop="goodDescriptin" label="物料描述"></el-table-column>
               <el-table-column prop="suitWidth" label="适用宽度"></el-table-column>
+              <el-table-column prop="liftLength" label="托砖板长度"></el-table-column>
+              <el-table-column prop="note" label="备注"></el-table-column>
               <el-table-column label="操作">
                 <template #default="scope">
                   <el-button
@@ -196,9 +204,9 @@
           <h3>已选设备 ({{ selectedDevices.length }})</h3>
           <el-table :data="selectedDevices" border>
             <el-table-column prop="type" label="设备类型"></el-table-column>
-            <el-table-column prop="code" label="物料编码"></el-table-column>
-            <el-table-column prop="name" label="名称/描述"></el-table-column>
             <el-table-column prop="quantity" label="数量"></el-table-column>
+            <el-table-column prop="goodCode" label="物料编码"></el-table-column>
+            <el-table-column prop="name" label="物料备注"></el-table-column>
             <el-table-column label="操作">
               <template #default="scope">
                 <el-button
@@ -221,22 +229,19 @@
 import {ref, reactive, onMounted, toRefs, nextTick, warn} from 'vue';
 import { getCurrentInstance } from 'vue';
 import {
-  exportSelectedDevices, searchBrickDevices,
+  searchBrickDevices,
   searchLiftDevices,
   searchTransferDevices,
   searchTransportDevices
 } from "../../../api/device.js";
 import axios from "axios";
-import request from "../../../utils/request.js";
 import {ElMessage} from "element-plus";
 
-// 获取当前实例
-const { proxy } = getCurrentInstance();
 
 // 布局状态
 const hiddenSections = ref({ left: false, middle: false, right: false });
-const leftWidth = ref('30%');
-const middleWidth = ref('40%');
+const leftWidth = ref('15%');
+const middleWidth = ref('55%');
 const rightWidth = ref('30%');
 const minWidth = ref(200); // 最小宽度限制
 
@@ -405,7 +410,7 @@ const selectDevice = (device, type) => {
       deviceInfo = {
         id: device.id,
         type: '砖机',
-        code: device.code,
+        goodCode: device.goodCode,
         name: device.goodDes,
         quantity: device.quantity
       };
@@ -414,7 +419,7 @@ const selectDevice = (device, type) => {
       deviceInfo = {
         id: device.id,
         type: '运输车',
-        code: device.goodCode,
+        goodCode: device.goodCode,
         name: device.goodDescription,
         quantity: device.quantity
       };
@@ -423,7 +428,7 @@ const selectDevice = (device, type) => {
       deviceInfo = {
         id: device.id,
         type: '摆渡车',
-        code: device.goodCode,
+        goodCode: device.goodCode,
         name: device.descxxtion,
         quantity: device.quantity
       };
@@ -432,7 +437,7 @@ const selectDevice = (device, type) => {
       deviceInfo = {
         id: device.id,
         type: '拍齐顶升',
-        code: device.codeGood,
+        goodCode: device.goodCode,
         name: device.goodDescriptin,
         quantity: device.quantity
       };
@@ -458,78 +463,119 @@ const removeDevice = (index) => {
   selectedDevices.value.splice(index, 1);
 };
 
-//导出选好的设备
+// 导出选好的设备
 const exportSelected = async () => {
+
+
   try {
     if (selectedDevices.value.length === 0) {
       ElMessage.error('请至少选择一条数据');
       return;
     }
 
-    // 获取原始数据
-    const rawData = selectedDevices.value.map(item => toRaw(item));
+    // 按设备类型组织数据
+    const selectedDevicesMap = {
+      brick: [],
+      transport: [],
+      transfer: [],
+      lift: []
+    };
 
-    // 使用axios下载文件（关键：设置responseType为'blob'）
-    const response = await axios.post(
-        '/api/device/transport/export-selected',
-        { deviceIds: rawData.map(item => item.goodCode) },
-        {
-          responseType: 'blob', // 必须设置为blob，否则无法处理二进制数据
-          headers: {
-            'Content-Type': 'application/json'
+    // 将已选设备按类型分类
+    selectedDevices.value.forEach(device => {
+      switch(device.type) {
+        case '砖机':
+          selectedDevicesMap.brick.push(device.goodCode);
+          break;
+        case '运输车':
+          selectedDevicesMap.transport.push(device.goodCode);
+          break;
+        case '摆渡车':
+          selectedDevicesMap.transfer.push(device.goodCode);
+          break;
+        case '拍齐顶升':
+          selectedDevicesMap.lift.push(device.goodCode);
+          break;
+      }
+    });
+
+    // 过滤空数组
+    const payload = Object.keys(selectedDevicesMap).reduce((acc, key) => {
+      if (selectedDevicesMap[key].length > 0) {
+        acc[key] = selectedDevicesMap[key];
+      }
+      return acc;
+    }, {});
+
+    try {
+      const response = await axios.post(
+          'http://localhost:8080/device/search/export-selected',
+          payload,
+          {
+            responseType: 'blob',
+            headers: { 'Content-Type': 'application/json' },
+            validateStatus: status => status === 200
           }
-        }
-    );
+      );
 
-    // 创建下载链接
-    const fileName = `selected_devices_${new Date().getTime()}.xlsx`;
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', fileName);
-    document.body.appendChild(link);
-    link.click();
+      const blob = response.data;
+      // 处理下载
+      const excelBlob = new Blob([blob], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
 
-    // 清理
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(link);
+      const contentDisposition = response.headers['content-disposition'] || '';
+      const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+      const fileName = fileNameMatch
+          ? decodeURIComponent(fileNameMatch[1].replace(/['"]/g, ''))
+          : `selected_devices_${new Date().getTime()}.xlsx`;
 
-    ElMessage.success('导出成功');
+
+      const url = window.URL.createObjectURL(excelBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', fileName);
+      document.body.appendChild(link);
+      link.click();
+
+      //  清理
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+      ElMessage.success('导出成功');
+
+    } catch (error) {
+      // 处理请求错误
+      let errorMsg = '导出失败';
+
+      if (error.response && error.response.data instanceof Blob) {
+        // 处理后端返回的Blob类型错误
+        const errorText = await error.response.data.text();
+        const errorObj = JSON.parse(errorText);
+        ElMessage.error(errorObj.msg || '导出失败');
+      } else {
+        ElMessage.error(error.message || '导出失败');
+      }
+      throw new Error(errorMsg);
+    }
 
   } catch (error) {
     console.error('导出失败:', error);
-
-    // 处理错误响应（当后端返回错误信息时）
-    if (error.response && error.response.data) {
-      try {
-        const reader = new FileReader();
-        reader.onload = () => {
-          try {
-            const errorMsg = JSON.parse(reader.result).message;
-            ElMessage.error(`导出失败: ${errorMsg}`);
-          } catch (e) {
-            ElMessage.error('导出失败: 服务器返回无效数据');
-          }
-        };
-        reader.readAsText(error.response.data);
-      } catch (e) {
-        ElMessage.error('导出失败: 无法解析错误信息');
-      }
-    } else {
-      ElMessage.error(`导出失败: ${error.message || '未知错误'}`);
-    }
+    ElMessage.error(error.message || '导出失败: 未知错误');
   }
 }
 
 // 初始化其他设备列表
 const initOtherDevices = async () => {
   try {
-    const [transportRes, transferRes, liftRes] = await Promise.all([
+    const [brickRes, transportRes, transferRes, liftRes] = await Promise.all([
+
+      searchBrickDevices({}),
       searchTransportDevices({}),
       searchTransferDevices({}),
       searchLiftDevices({})
     ]);
 
+    brickDevices.value = brickRes.rows.map(item => ({ ...item, quantity: 1 }));
     transportDevices.value = transportRes.rows.map(item => ({ ...item, quantity: 1 }));
     transferDevices.value = transferRes.rows.map(item => ({ ...item, quantity: 1 }));
     liftDevices.value = liftRes.rows.map(item => ({ ...item, quantity: 1 }));
