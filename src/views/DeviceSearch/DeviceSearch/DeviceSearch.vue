@@ -1,5 +1,5 @@
 <template>
-  <div class="device-search-page">
+  <div class="device-search-page" >
     <!-- 控制面板 -->
     <div class="control-panel">
       <button @click="toggleSection('left')" :class="{ active: !hiddenSections.left }">
@@ -66,7 +66,7 @@
       >
         <el-tabs v-model="activeTab" type="card">
           <el-tab-pane label="砖机" name="brick">
-            <el-table :data="brickDevices" border>
+            <el-table :data="currentBrickDevices" border>
               <el-table-column label="数量">
                 <template #default="scope">
                   <el-input-number
@@ -94,9 +94,20 @@
                 </template>
               </el-table-column>
             </el-table>
+            <div class="pagination-container">
+              <el-pagination
+                  v-model:current-page="pagination.brick.currentPage"
+                  v-model:page-size="pagination.brick.pageSize"
+                  :total="pagination.brick.total"
+                  :page-sizes="[10, 20, 50]"
+                  layout="total, sizes, prev, pager, next, jumper"
+                  @size-change="handlePageSizeChange('brick', $event)"
+                  @current-change="handleCurrentPageChange('brick', $event)"
+              />
+            </div>
           </el-tab-pane>
           <el-tab-pane label="运输车" name="transport">
-            <el-table :data="transportDevices" border>
+            <el-table :data="currentTransportDevices" border>
               <el-table-column label="数量">
                 <template #default="scope">
                   <el-input-number
@@ -125,9 +136,20 @@
                 </template>
               </el-table-column>
             </el-table>
+            <div class="pagination-container">
+              <el-pagination
+                  v-model:current-page="pagination.transport.currentPage"
+                  v-model:page-size="pagination.transport.pageSize"
+                  :total="pagination.transport.total"
+                  :page-sizes="[10, 20, 50]"
+                  layout="total, sizes, prev, pager, next, jumper"
+                  @size-change="handlePageSizeChange('transport', $event)"
+                  @current-change="handleCurrentPageChange('transport', $event)"
+              />
+            </div>
           </el-tab-pane>
           <el-tab-pane label="摆渡车" name="transfer">
-            <el-table :data="transferDevices" border>
+            <el-table :data="currentTransferDevices" border>
               <el-table-column label="数量">
                 <template #default="scope">
                   <el-input-number
@@ -154,9 +176,20 @@
                 </template>
               </el-table-column>
             </el-table>
+            <div class="pagination-container">
+              <el-pagination
+                  v-model:current-page="pagination.transfer.currentPage"
+                  v-model:page-size="pagination.transfer.pageSize"
+                  :total="pagination.transfer.total"
+                  :page-sizes="[10, 20, 50]"
+                  layout="total, sizes, prev, pager, next, jumper"
+                  @size-change="handlePageSizeChange('transfer', $event)"
+                  @current-change="handleCurrentPageChange('transfer', $event)"
+              />
+            </div>
           </el-tab-pane>
           <el-tab-pane label="拍齐顶升" name="lift">
-            <el-table :data="liftDevices" border>
+            <el-table :data="currentLiftDevices" border>
               <el-table-column label="数量">
                 <template #default="scope">
                   <el-input-number
@@ -183,6 +216,17 @@
                 </template>
               </el-table-column>
             </el-table>
+            <div class="pagination-container">
+              <el-pagination
+                  v-model:current-page="pagination.lift.currentPage"
+                  v-model:page-size="pagination.lift.pageSize"
+                  :total="pagination.lift.total"
+                  :page-sizes="[10, 20, 50]"
+                  layout="total, sizes, prev, pager, next, jumper"
+                  @size-change="handlePageSizeChange('lift', $event)"
+                  @current-change="handleCurrentPageChange('lift', $event)"
+              />
+            </div>
           </el-tab-pane>
         </el-tabs>
       </div>
@@ -202,7 +246,7 @@
       >
         <div class="selected-devices">
           <h3>已选设备 ({{ selectedDevices.length }})</h3>
-          <el-table :data="selectedDevices" border>
+          <el-table :data="currentSelectedDevices" border>
             <el-table-column prop="type" label="设备类型"></el-table-column>
             <el-table-column prop="quantity" label="数量"></el-table-column>
             <el-table-column prop="goodCode" label="物料编码"></el-table-column>
@@ -219,6 +263,17 @@
               </template>
             </el-table-column>
           </el-table>
+          <div class="pagination-container" v-if="selectedDevices.length > 0">
+            <el-pagination
+                v-model:current-page="selectedPagination.currentPage"
+                v-model:page-size="selectedPagination.pageSize"
+                :total="selectedDevices.length"
+                :page-sizes="[5, 10, 20]"
+                layout="total, sizes, prev, pager, next, jumper"
+                @size-change="handleSelectedPageSizeChange"
+                @current-change="handleSelectedCurrentPageChange"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -226,7 +281,7 @@
 </template>
 
 <script setup name="DeviceSearch">
-import {ref, reactive, onMounted, toRefs, nextTick, warn} from 'vue';
+import {ref, reactive, onMounted, toRefs, nextTick, computed} from 'vue';
 import { getCurrentInstance } from 'vue';
 import {
   searchBrickDevices,
@@ -261,6 +316,63 @@ const transportDevices = ref([]);
 const transferDevices = ref([]);
 const liftDevices = ref([]);
 const selectedDevices = ref([]);
+
+// 分页配置
+const pagination = reactive({
+  brick: {
+    currentPage: 1,
+    pageSize: 10,
+    total: 0
+  },
+  transport: {
+    currentPage: 1,
+    pageSize: 10,
+    total: 0
+  },
+  transfer: {
+    currentPage: 1,
+    pageSize: 10,
+    total: 0
+  },
+  lift: {
+    currentPage: 1,
+    pageSize: 10,
+    total: 0
+  }
+});
+
+// 已选设备分页配置
+const selectedPagination = reactive({
+  currentPage: 1,
+  pageSize: 5
+});
+
+// 计算属性 - 分页后的数据
+const currentBrickDevices = computed(() => {
+  const startIndex = (pagination.brick.currentPage - 1) * pagination.brick.pageSize;
+  return brickDevices.value.slice(startIndex, startIndex + pagination.brick.pageSize);
+});
+
+const currentTransportDevices = computed(() => {
+  const startIndex = (pagination.transport.currentPage - 1) * pagination.transport.pageSize;
+  return transportDevices.value.slice(startIndex, startIndex + pagination.transport.pageSize);
+});
+
+const currentTransferDevices = computed(() => {
+  const startIndex = (pagination.transfer.currentPage - 1) * pagination.transfer.pageSize;
+  return transferDevices.value.slice(startIndex, startIndex + pagination.transfer.pageSize);
+});
+
+const currentLiftDevices = computed(() => {
+  const startIndex = (pagination.lift.currentPage - 1) * pagination.lift.pageSize;
+  return liftDevices.value.slice(startIndex, startIndex + pagination.lift.pageSize);
+});
+
+// 已选设备分页数据
+const currentSelectedDevices = computed(() => {
+  const startIndex = (selectedPagination.currentPage - 1) * selectedPagination.pageSize;
+  return selectedDevices.value.slice(startIndex, startIndex + selectedPagination.pageSize);
+});
 
 // 引用
 const leftSection = ref(null);
@@ -387,12 +499,88 @@ const stopResize = () => {
 // 搜索设备
 const searchDevices = async () => {
   try {
-    const response = await searchBrickDevices(form);
+    // 重置当前页为1
+    pagination.brick.currentPage = 1;
+    const response = await searchBrickDevices({
+      ...form,
+      pageNum: pagination.brick.currentPage,
+      pageSize: pagination.brick.pageSize
+    });
     brickDevices.value = response.rows.map(item => ({ ...item, quantity: 1 }));
+    pagination.brick.total = response.total; // 假设接口返回total字段
     activeTab.value = 'brick';
   } catch (error) {
     console.error('搜索设备失败:', error);
   }
+};
+
+// 分页事件处理
+const handlePageSizeChange = async (type, pageSize) => {
+  pagination[type].pageSize = pageSize;
+  pagination[type].currentPage = 1; // 重置为第一页
+  await fetchDevicesByType(type);
+};
+
+const handleCurrentPageChange = async (type, currentPage) => {
+  pagination[type].currentPage = currentPage;
+  await fetchDevicesByType(type);
+};
+
+// 根据类型获取设备数据
+const fetchDevicesByType = async (type) => {
+  try {
+    let response;
+    const params = {
+      pageNum: pagination[type].currentPage,
+      pageSize: pagination[type].pageSize
+    };
+
+    // 如果是砖机，添加搜索表单参数
+    if (type === 'brick') {
+      params.suitType = form.suitType;
+      params.type = form.type;
+    }
+
+    switch (type) {
+      case 'brick':
+        response = await searchBrickDevices(params);
+        break;
+      case 'transport':
+        response = await searchTransportDevices(params);
+        break;
+      case 'transfer':
+        response = await searchTransferDevices(params);
+        break;
+      case 'lift':
+        response = await searchLiftDevices(params);
+        break;
+      default:
+        return;
+    }
+
+    // 更新对应的数据和总数
+    const deviceRefs = {
+      brick: brickDevices,
+      transport: transportDevices,
+      transfer: transferDevices,
+      lift: liftDevices
+    };
+
+    deviceRefs[type].value = response.rows.map(item => ({ ...item, quantity: 1 }));
+    pagination[type].total = response.total; // 假设接口返回total字段
+  } catch (error) {
+    console.error(`获取${type}设备失败:`, error);
+  }
+};
+
+// 已选设备分页事件
+const handleSelectedPageSizeChange = (pageSize) => {
+  selectedPagination.pageSize = pageSize;
+  selectedPagination.currentPage = 1;
+};
+
+const handleSelectedCurrentPageChange = (currentPage) => {
+  selectedPagination.currentPage = currentPage;
 };
 
 // 重置表单
@@ -460,20 +648,25 @@ const selectDevice = (device, type) => {
 
 // 移除设备
 const removeDevice = (index) => {
-  selectedDevices.value.splice(index, 1);
+  // 计算原始索引（考虑分页）
+  const originalIndex = (selectedPagination.currentPage - 1) * selectedPagination.pageSize + index;
+  selectedDevices.value.splice(originalIndex, 1);
+
+  // 如果删除后当前页没有数据且不是第一页，自动跳转到上一页
+  if (currentSelectedDevices.value.length === 0 && selectedPagination.currentPage > 1) {
+    selectedPagination.currentPage--;
+  }
 };
 
 // 导出选好的设备
 const exportSelected = async () => {
-
-
   try {
     if (selectedDevices.value.length === 0) {
       ElMessage.error('请至少选择一条数据');
       return;
     }
 
-    // 按设备类型组织数据
+    // 按设备类型组织数据，包含数量信息
     const selectedDevicesMap = {
       brick: [],
       transport: [],
@@ -481,20 +674,32 @@ const exportSelected = async () => {
       lift: []
     };
 
-    // 将已选设备按类型分类
+    // 将已选设备按类型分类，包含数量
     selectedDevices.value.forEach(device => {
       switch(device.type) {
         case '砖机':
-          selectedDevicesMap.brick.push(device.goodCode);
+          selectedDevicesMap.brick.push({
+            goodCode: device.goodCode,
+            quantity: device.quantity
+          });
           break;
         case '运输车':
-          selectedDevicesMap.transport.push(device.goodCode);
+          selectedDevicesMap.transport.push({
+            goodCode: device.goodCode,
+            quantity: device.quantity
+          });
           break;
         case '摆渡车':
-          selectedDevicesMap.transfer.push(device.goodCode);
+          selectedDevicesMap.transfer.push({
+            goodCode: device.goodCode,
+            quantity: device.quantity
+          });
           break;
         case '拍齐顶升':
-          selectedDevicesMap.lift.push(device.goodCode);
+          selectedDevicesMap.lift.push({
+            goodCode: device.goodCode,
+            quantity: device.quantity
+          });
           break;
       }
     });
@@ -567,18 +772,37 @@ const exportSelected = async () => {
 // 初始化其他设备列表
 const initOtherDevices = async () => {
   try {
+    // 初始化时获取第一页数据
     const [brickRes, transportRes, transferRes, liftRes] = await Promise.all([
-
-      searchBrickDevices({}),
-      searchTransportDevices({}),
-      searchTransferDevices({}),
-      searchLiftDevices({})
+      searchBrickDevices({
+        pageNum: pagination.brick.currentPage,
+        pageSize: pagination.brick.pageSize
+      }),
+      searchTransportDevices({
+        pageNum: pagination.transport.currentPage,
+        pageSize: pagination.transport.pageSize
+      }),
+      searchTransferDevices({
+        pageNum: pagination.transfer.currentPage,
+        pageSize: pagination.transfer.pageSize
+      }),
+      searchLiftDevices({
+        pageNum: pagination.lift.currentPage,
+        pageSize: pagination.lift.pageSize
+      })
     ]);
 
     brickDevices.value = brickRes.rows.map(item => ({ ...item, quantity: 1 }));
+    pagination.brick.total = brickRes.total;
+
     transportDevices.value = transportRes.rows.map(item => ({ ...item, quantity: 1 }));
+    pagination.transport.total = transportRes.total;
+
     transferDevices.value = transferRes.rows.map(item => ({ ...item, quantity: 1 }));
+    pagination.transfer.total = transferRes.total;
+
     liftDevices.value = liftRes.rows.map(item => ({ ...item, quantity: 1 }));
+    pagination.lift.total = liftRes.total;
   } catch (error) {
     console.error('初始化其他设备失败:', error);
   }
@@ -604,7 +828,7 @@ onMounted(() => {
 .device-search-page {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 60%;
   overflow: hidden;
 }
 
@@ -720,5 +944,13 @@ onMounted(() => {
 /* 确保表格适应容器宽度 */
 .el-table {
   width: 100% !important;
+}
+
+/* 分页容器样式 */
+.pagination-container {
+  margin-top: 15px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }
 </style>
