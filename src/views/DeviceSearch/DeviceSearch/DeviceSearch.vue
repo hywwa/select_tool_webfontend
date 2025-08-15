@@ -1,5 +1,5 @@
 <template>
-  <div class="device-search-page" >
+  <div class="device-search-page">
     <!-- 控制面板 -->
     <div class="control-panel">
       <button @click="toggleSection('left')" :class="{ active: !hiddenSections.left }">
@@ -11,7 +11,7 @@
       <button @click="toggleSection('right')" :class="{ active: !hiddenSections.right }">
         {{ hiddenSections.right ? '显示' : '隐藏' }}已选区
       </button>
-      <button @click="exportSelected" class="export-btn" v-if="!hiddenSections.right && selectedDevices.length > 0">
+      <button v-loading.fullscreen.lock="fullscreenLoading" @click="exportSelected" class="export-btn" v-if="!hiddenSections.right && selectedDevices.length > 0">
         导出已选设备
       </button>
     </div>
@@ -64,168 +64,177 @@
           :style="{ width: middleWidth, display: hiddenSections.middle ? 'none' : 'block' }"
           ref="middleSection"
       >
-        <el-tabs v-model="activeTab" type="card">
+        <!-- 标签页导航放在顶部 -->
+        <el-tabs v-model="activeTab" type="card" class="sticky-tabs">
           <el-tab-pane label="砖机" name="brick">
-            <el-table :data="currentBrickDevices" border>
-              <el-table-column label="数量">
-                <template #default="scope">
-                  <el-input-number
-                      v-model="scope.row.quantity"
-                      :min="1"
-                      size="small"
-                      :controls-position="'right'"
-                  ></el-input-number>
-                </template>
-              </el-table-column>
-              <el-table-column prop="goodCode" label="物料编码"></el-table-column>
-              <el-table-column prop="goodDes" label="物料描述"></el-table-column>
-              <el-table-column prop="suitType" label="适用砖规格"></el-table-column>
-              <el-table-column prop="type" label="样式"></el-table-column>
-              <el-table-column prop="moveLength" label="移砖行程"></el-table-column>
-              <el-table-column prop="note" label="备注"></el-table-column>
-              <el-table-column label="操作">
-                <template #default="scope">
-                  <el-button
-                      type="text"
-                      @click="selectDevice(scope.row, 'brick')"
-                  >
-                    选择
-                  </el-button>
-                </template>
-              </el-table-column>
-            </el-table>
-            <div class="pagination-container">
-              <el-pagination
-                  v-model:current-page="pagination.brick.currentPage"
-                  v-model:page-size="pagination.brick.pageSize"
-                  :total="pagination.brick.total"
-                  :page-sizes="[10, 20, 50]"
-                  layout="total, sizes, prev, pager, next, jumper"
-                  @size-change="handlePageSizeChange('brick', $event)"
-                  @current-change="handleCurrentPageChange('brick', $event)"
-              />
+            <div class="tab-content">
+              <el-table :data="currentBrickDevices" border>
+                <el-table-column label="数量">
+                  <template #default="scope">
+                    <el-input-number
+                        v-model="scope.row.quantity"
+                        :min="1"
+                        size="small"
+                        :controls-position="'right'"
+                    ></el-input-number>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="goodCode" label="物料编码"></el-table-column>
+                <el-table-column prop="goodDes" label="物料描述"></el-table-column>
+                <el-table-column prop="suitType" label="适用砖规格"></el-table-column>
+                <el-table-column prop="type" label="样式"></el-table-column>
+                <el-table-column prop="moveLength" label="移砖行程"></el-table-column>
+                <el-table-column prop="note" label="备注"></el-table-column>
+                <el-table-column label="操作">
+                  <template #default="scope">
+                    <el-button
+                        type="text"
+                        @click="selectDevice(scope.row, 'brick')"
+                    >
+                      选择
+                    </el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+              <div class="pagination-container">
+                <el-pagination
+                    v-model:current-page="pagination.brick.currentPage"
+                    v-model:page-size="pagination.brick.pageSize"
+                    :total="pagination.brick.total"
+                    :page-sizes="[10, 20, 50]"
+                    layout="total, sizes, prev, pager, next, jumper"
+                    @size-change="handlePageSizeChange('brick', $event)"
+                    @current-change="handleCurrentPageChange('brick', $event)"
+                />
+              </div>
             </div>
           </el-tab-pane>
           <el-tab-pane label="运输车" name="transport">
-            <el-table :data="currentTransportDevices" border>
-              <el-table-column label="数量">
-                <template #default="scope">
-                  <el-input-number
-                      v-model="scope.row.quantity"
-                      :min="1"
-                      size="small"
-                      :controls-position="'right'"
-                  ></el-input-number>
-                </template>
-              </el-table-column>
-              <el-table-column prop="goodCode" label="物料编码"></el-table-column>
-              <el-table-column prop="goodDescription" label="物料描述"></el-table-column>
-              <el-table-column prop="lengthCar" label="车长"></el-table-column>
-              <el-table-column prop="tsLength" label="托升支架长"></el-table-column>
-              <el-table-column prop="tsType" label="托升支架形式"></el-table-column>
-              <el-table-column prop="elecMode" label="电力形式"></el-table-column>
-              <el-table-column prop="note" label="备注"></el-table-column>
-              <el-table-column label="操作">
-                <template #default="scope">
-                  <el-button
-                      type="text"
-                      @click="selectDevice(scope.row, 'transport')"
-                  >
-                    选择
-                  </el-button>
-                </template>
-              </el-table-column>
-            </el-table>
-            <div class="pagination-container">
-              <el-pagination
-                  v-model:current-page="pagination.transport.currentPage"
-                  v-model:page-size="pagination.transport.pageSize"
-                  :total="pagination.transport.total"
-                  :page-sizes="[10, 20, 50]"
-                  layout="total, sizes, prev, pager, next, jumper"
-                  @size-change="handlePageSizeChange('transport', $event)"
-                  @current-change="handleCurrentPageChange('transport', $event)"
-              />
+            <div class="tab-content">
+              <el-table :data="currentTransportDevices" border>
+                <el-table-column label="数量">
+                  <template #default="scope">
+                    <el-input-number
+                        v-model="scope.row.quantity"
+                        :min="1"
+                        size="small"
+                        :controls-position="'right'"
+                    ></el-input-number>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="goodCode" label="物料编码"></el-table-column>
+                <el-table-column prop="goodDescription" label="物料描述"></el-table-column>
+                <el-table-column prop="lengthCar" label="车长"></el-table-column>
+                <el-table-column prop="tsLength" label="托升支架长"></el-table-column>
+                <el-table-column prop="tsType" label="托升支架形式"></el-table-column>
+                <el-table-column prop="elecMode" label="电力形式"></el-table-column>
+                <el-table-column prop="note" label="备注"></el-table-column>
+                <el-table-column label="操作">
+                  <template #default="scope">
+                    <el-button
+                        type="text"
+                        @click="selectDevice(scope.row, 'transport')"
+                    >
+                      选择
+                    </el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+              <div class="pagination-container">
+                <el-pagination
+                    v-model:current-page="pagination.transport.currentPage"
+                    v-model:page-size="pagination.transport.pageSize"
+                    :total="pagination.transport.total"
+                    :page-sizes="[10, 20, 50]"
+                    layout="total, sizes, prev, pager, next, jumper"
+                    @size-change="handlePageSizeChange('transport', $event)"
+                    @current-change="handleCurrentPageChange('transport', $event)"
+                />
+              </div>
             </div>
           </el-tab-pane>
           <el-tab-pane label="摆渡车" name="transfer">
-            <el-table :data="currentTransferDevices" border>
-              <el-table-column label="数量">
-                <template #default="scope">
-                  <el-input-number
-                      v-model="scope.row.quantity"
-                      :min="1"
-                      size="small"
-                      :controls-position="'right'"
-                  ></el-input-number>
-                </template>
-              </el-table-column>
-              <el-table-column prop="goodCode" label="物料编码"></el-table-column>
-              <el-table-column prop="descxxtion" label="描述"></el-table-column>
-              <el-table-column prop="longToall" label="总长"></el-table-column>
-              <el-table-column prop="kWidth" label="坑宽"></el-table-column>
-              <el-table-column prop="note" label="备注"></el-table-column>
-              <el-table-column label="操作">
-                <template #default="scope">
-                  <el-button
-                      type="text"
-                      @click="selectDevice(scope.row, 'transfer')"
-                  >
-                    选择
-                  </el-button>
-                </template>
-              </el-table-column>
-            </el-table>
-            <div class="pagination-container">
-              <el-pagination
-                  v-model:current-page="pagination.transfer.currentPage"
-                  v-model:page-size="pagination.transfer.pageSize"
-                  :total="pagination.transfer.total"
-                  :page-sizes="[10, 20, 50]"
-                  layout="total, sizes, prev, pager, next, jumper"
-                  @size-change="handlePageSizeChange('transfer', $event)"
-                  @current-change="handleCurrentPageChange('transfer', $event)"
-              />
+            <div class="tab-content">
+              <el-table :data="currentTransferDevices" border>
+                <el-table-column label="数量">
+                  <template #default="scope">
+                    <el-input-number
+                        v-model="scope.row.quantity"
+                        :min="1"
+                        size="small"
+                        :controls-position="'right'"
+                    ></el-input-number>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="goodCode" label="物料编码"></el-table-column>
+                <el-table-column prop="descxxtion" label="描述"></el-table-column>
+                <el-table-column prop="longToall" label="总长"></el-table-column>
+                <el-table-column prop="kWidth" label="坑宽"></el-table-column>
+                <el-table-column prop="note" label="备注"></el-table-column>
+                <el-table-column label="操作">
+                  <template #default="scope">
+                    <el-button
+                        type="text"
+                        @click="selectDevice(scope.row, 'transfer')"
+                    >
+                      选择
+                    </el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+              <div class="pagination-container">
+                <el-pagination
+                    v-model:current-page="pagination.transfer.currentPage"
+                    v-model:page-size="pagination.transfer.pageSize"
+                    :total="pagination.transfer.total"
+                    :page-sizes="[10, 20, 50]"
+                    layout="total, sizes, prev, pager, next, jumper"
+                    @size-change="handlePageSizeChange('transfer', $event)"
+                    @current-change="handleCurrentPageChange('transfer', $event)"
+                />
+              </div>
             </div>
           </el-tab-pane>
           <el-tab-pane label="拍齐顶升" name="lift">
-            <el-table :data="currentLiftDevices" border>
-              <el-table-column label="数量">
-                <template #default="scope">
-                  <el-input-number
-                      v-model="scope.row.quantity"
-                      :min="1"
-                      size="small"
-                      :controls-position="'right'"
-                  ></el-input-number>
-                </template>
-              </el-table-column>
-              <el-table-column prop="goodCode" label="物料编码"></el-table-column>
-              <el-table-column prop="goodDescriptin" label="物料描述"></el-table-column>
-              <el-table-column prop="suitWidth" label="适用宽度"></el-table-column>
-              <el-table-column prop="liftLength" label="托砖板长度"></el-table-column>
-              <el-table-column prop="note" label="备注"></el-table-column>
-              <el-table-column label="操作">
-                <template #default="scope">
-                  <el-button
-                      type="text"
-                      @click="selectDevice(scope.row, 'lift')"
-                  >
-                    选择
-                  </el-button>
-                </template>
-              </el-table-column>
-            </el-table>
-            <div class="pagination-container">
-              <el-pagination
-                  v-model:current-page="pagination.lift.currentPage"
-                  v-model:page-size="pagination.lift.pageSize"
-                  :total="pagination.lift.total"
-                  :page-sizes="[10, 20, 50]"
-                  layout="total, sizes, prev, pager, next, jumper"
-                  @size-change="handlePageSizeChange('lift', $event)"
-                  @current-change="handleCurrentPageChange('lift', $event)"
-              />
+            <div class="tab-content">
+              <el-table :data="currentLiftDevices" border>
+                <el-table-column label="数量">
+                  <template #default="scope">
+                    <el-input-number
+                        v-model="scope.row.quantity"
+                        :min="1"
+                        size="small"
+                        :controls-position="'right'"
+                    ></el-input-number>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="goodCode" label="物料编码"></el-table-column>
+                <el-table-column prop="goodDescriptin" label="物料描述"></el-table-column>
+                <el-table-column prop="suitWidth" label="适用宽度"></el-table-column>
+                <el-table-column prop="liftLength" label="托砖板长度"></el-table-column>
+                <el-table-column prop="note" label="备注"></el-table-column>
+                <el-table-column label="操作">
+                  <template #default="scope">
+                    <el-button
+                        type="text"
+                        @click="selectDevice(scope.row, 'lift')"
+                    >
+                      选择
+                    </el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+              <div class="pagination-container">
+                <el-pagination
+                    v-model:current-page="pagination.lift.currentPage"
+                    v-model:page-size="pagination.lift.pageSize"
+                    :total="pagination.lift.total"
+                    :page-sizes="[10, 20, 50]"
+                    layout="total, sizes, prev, pager, next, jumper"
+                    @size-change="handlePageSizeChange('lift', $event)"
+                    @current-change="handleCurrentPageChange('lift', $event)"
+                />
+              </div>
             </div>
           </el-tab-pane>
         </el-tabs>
@@ -291,13 +300,16 @@ import {
 } from "../../../api/device.js";
 import axios from "axios";
 import {ElMessage} from "element-plus";
+import { ElLoading } from 'element-plus'
+
+const fullscreenLoading = ref(false) //全屏加载效果
 
 
 // 布局状态
 const hiddenSections = ref({ left: false, middle: false, right: false });
-const leftWidth = ref('15%');
+const leftWidth = ref('30%');
 const middleWidth = ref('55%');
-const rightWidth = ref('30%');
+const rightWidth = ref('15%');
 const minWidth = ref(200); // 最小宽度限制
 
 // 表单数据
@@ -321,22 +333,22 @@ const selectedDevices = ref([]);
 const pagination = reactive({
   brick: {
     currentPage: 1,
-    pageSize: 10,
+    pageSize: 3,
     total: 0
   },
   transport: {
     currentPage: 1,
-    pageSize: 10,
+    pageSize: 3,
     total: 0
   },
   transfer: {
     currentPage: 1,
-    pageSize: 10,
+    pageSize: 3,
     total: 0
   },
   lift: {
     currentPage: 1,
-    pageSize: 10,
+    pageSize: 3,
     total: 0
   }
 });
@@ -660,6 +672,7 @@ const removeDevice = (index) => {
 
 // 导出选好的设备
 const exportSelected = async () => {
+  fullscreenLoading.value = true
   try {
     if (selectedDevices.value.length === 0) {
       ElMessage.error('请至少选择一条数据');
@@ -714,7 +727,7 @@ const exportSelected = async () => {
 
     try {
       const response = await axios.post(
-          'http://localhost:8080/device/search/export-selected',
+          'http://localhost:8080/device/search/export-selected-together',
           payload,
           {
             responseType: 'blob',
@@ -746,6 +759,7 @@ const exportSelected = async () => {
       //  清理
       window.URL.revokeObjectURL(url);
       document.body.removeChild(link);
+      fullscreenLoading.value = false
       ElMessage.success('导出成功');
 
     } catch (error) {
@@ -772,6 +786,7 @@ const exportSelected = async () => {
 // 初始化其他设备列表
 const initOtherDevices = async () => {
   try {
+    fullscreenLoading.value = true
     // 初始化时获取第一页数据
     const [brickRes, transportRes, transferRes, liftRes] = await Promise.all([
       searchBrickDevices({
@@ -803,6 +818,7 @@ const initOtherDevices = async () => {
 
     liftDevices.value = liftRes.rows.map(item => ({ ...item, quantity: 1 }));
     pagination.lift.total = liftRes.total;
+    fullscreenLoading.value = false
   } catch (error) {
     console.error('初始化其他设备失败:', error);
   }
@@ -817,19 +833,21 @@ onMounted(() => {
   initOtherDevices();
   window.addEventListener('resize', handleWindowResize);
 
-  // 初始化宽度，防止出现0宽度问题
-  nextTick(() => {
-    adjustSectionWidths();
-  });
+
 });
 </script>
 
 <style scoped>
+/* 限制整个页面高度为视口高度 */
 .device-search-page {
   display: flex;
   flex-direction: column;
-  height: 60%;
+  height: 100vh;
   overflow: hidden;
+  max-height: 100vh;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 .control-panel {
@@ -839,6 +857,8 @@ onMounted(() => {
   display: flex;
   gap: 10px;
   align-items: center;
+  height: 60px;
+  box-sizing: border-box;
 }
 
 .control-panel button {
@@ -865,10 +885,9 @@ onMounted(() => {
 
 .main-container-big {
   display: flex;
-  flex: 1;
+  height: calc(100vh - 70px);
   overflow: hidden;
   position: relative;
-  min-height: 0;
 }
 
 .section {
@@ -876,23 +895,41 @@ onMounted(() => {
   transition: width 0.2s ease;
   height: 100%;
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: #ddd transparent;
 }
 
 .left-section {
   background-color: #fff;
   padding: 15px;
   border-right: 1px solid #e4e7ed;
+  max-height: 100%;
 }
 
+/* 中间结果区样式优化 - 确保标签页在顶部 */
 .middle-section {
-  padding: 15px;
+  padding: 0;
   border-right: 1px solid #e4e7ed;
   flex: 1;
+  height: 100%; /* 新增 */
+  display: flex;
+  flex-direction: column; /* 确保是flex容器 */
+/*  overflow: hidden; !* 新增：防止内部溢出 *!*/
+}
+
+/* 标签页内容区域 */
+.tab-content {
+  padding: 15px;
+  flex: 1;
+  overflow: auto;
+  box-sizing: border-box;
+  min-height: 0; /* 关键修复 */
 }
 
 .right-section {
   padding: 15px;
   background-color: #fff;
+  max-height: 100%;
 }
 
 .param-form {
@@ -908,7 +945,6 @@ onMounted(() => {
   margin-bottom: 15px;
 }
 
-/* 调整手柄样式 */
 .resize-handle {
   width: 5px;
   height: 100%;
@@ -926,7 +962,6 @@ onMounted(() => {
   background-color: #66b1ff;
 }
 
-/* 自定义滚动条 */
 .section::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -941,16 +976,13 @@ onMounted(() => {
   background-color: transparent;
 }
 
-/* 确保表格适应容器宽度 */
-.el-table {
-  width: 100% !important;
-}
 
-/* 分页容器样式 */
 .pagination-container {
   margin-top: 15px;
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  height: 50px;
 }
+
 </style>
