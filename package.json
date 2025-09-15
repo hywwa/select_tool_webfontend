@@ -47,5 +47,7 @@
   },
   "overrides": {
     "quill": "2.0.2"
-  }
+  },
+  "main": "vite.config.js",
+  "keywords": []
 }

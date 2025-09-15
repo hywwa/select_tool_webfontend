@@ -1,6 +1,8 @@
 import { createWebHistory, createRouter } from 'vue-router'
 /* Layout */
 import Layout from '@/layout'
+import Project from '@/views/device/project/index.vue'
+import ProjectManagement from '@/views/device/management/index.vue'
 
 /**
  * Note: 路由配置项
@@ -85,6 +87,7 @@ export const constantRoutes = [
     ]
   }
 ]
+
 
 // 动态路由，基于用户权限动态去加载
 export const dynamicRoutes = [

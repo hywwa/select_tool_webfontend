@@ -1,114 +1,114 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="自增主键" prop="id">
+      <el-form-item label="物料编码" prop="materialCode">
         <el-input
-          v-model="queryParams.id"
-          placeholder="请输入自增主键"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="物料编码" prop="goodCode">
-        <el-input
-          v-model="queryParams.goodCode"
+          v-model="queryParams.materialCode"
           placeholder="请输入物料编码"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="物料描述" prop="descxxtion">
+      <el-form-item label="物料描述" prop="materialDescription">
         <el-input
-          v-model="queryParams.descxxtion"
+          v-model="queryParams.materialDescription"
           placeholder="请输入物料描述"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="摆渡车长度" prop="longToall">
+      <el-form-item label="坑宽" prop="ferryPitWidth">
         <el-input
-          v-model="queryParams.longToall"
-          placeholder="请输入摆渡车长度"
+          v-model="queryParams.ferryPitWidth"
+          placeholder="请输入摆渡坑宽度(mm)"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="摆渡车上轨道内度" prop="longInner">
+      <el-form-item label="关键特征" prop="ferryKeyFeature">
         <el-input
-          v-model="queryParams.longInner"
-          placeholder="请输入摆渡车上轨道内度"
+          v-model="queryParams.ferryKeyFeature"
+          placeholder="请输入摆渡车关键特征"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="坑宽" prop="kWidth">
+      <el-form-item label="最大砖宽" prop="maxBrickWidth">
         <el-input
-          v-model="queryParams.kWidth"
-          placeholder="请输入坑宽"
+          v-model="queryParams.maxBrickWidth"
+          placeholder="请输入使用最大砖宽度(mm)"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="有、无坑" prop="hasButt">
+      <el-form-item label="摆渡车长" prop="ferryLength">
         <el-input
-          v-model="queryParams.hasButt"
-          placeholder="请输入有、无坑"
+          v-model="queryParams.ferryLength"
+          placeholder="请输入摆渡车长度(mm)"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="定位模式" prop="gpsMode">
+      <el-form-item label="轨道内宽" prop="trackWidth">
         <el-input
-          v-model="queryParams.gpsMode"
+          v-model="queryParams.trackWidth"
+          placeholder="请输入轨道内宽(mm)"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="定位模式" prop="positioning">
+        <el-input
+          v-model="queryParams.positioning"
           placeholder="请输入定位模式"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="电力形式" prop="eleMode">
+      <el-form-item label="行走电机" prop="motor">
         <el-input
-          v-model="queryParams.eleMode"
-          placeholder="请输入电力形式"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="行走电机" prop="walkDj">
-        <el-input
-          v-model="queryParams.walkDj"
+          v-model="queryParams.motor"
           placeholder="请输入行走电机"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="行走减速机速比" prop="walkSlow">
+      <el-form-item label="液压功率" prop="hydraulicPower">
         <el-input
-          v-model="queryParams.walkSlow"
-          placeholder="请输入行走减速机速比"
+          v-model="queryParams.hydraulicPower"
+          placeholder="请输入液压功率(KW)"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="是否带电气控制系统" prop="hasEleContro">
+      <el-form-item label="减速比" prop="reducerRatio">
         <el-input
-          v-model="queryParams.hasEleContro"
-          placeholder="请输入是否带电气控制系统"
+          v-model="queryParams.reducerRatio"
+          placeholder="请输入减速机速比"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="备注" prop="note">
+      <el-form-item label="电气控制" prop="hasControl">
         <el-input
-          v-model="queryParams.note"
+          v-model="queryParams.hasControl"
+          placeholder="请输入有电气控制"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="备注" prop="notes">
+        <el-input
+          v-model="queryParams.notes"
           placeholder="请输入备注"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="在用项目" prop="usePro">
+      <el-form-item label="使用项目" prop="projects">
         <el-input
-          v-model="queryParams.usePro"
-          placeholder="请输入在用项目"
+          v-model="queryParams.projects"
+          placeholder="请输入使用项目"
           clearable
           @keyup.enter="handleQuery"
         />
@@ -163,25 +163,22 @@
 
     <el-table v-loading="loading" :data="transferList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="自增主键" align="center" prop="id" />
-      <el-table-column label="物料编码" align="center" prop="goodCode" />
-      <el-table-column label="物料描述" align="center" prop="descxxtion" />
-      <el-table-column label="摆渡车长度" align="center" prop="longToall" />
-      <el-table-column label="摆渡车上轨道内度" align="center" prop="longInner" />
-      <el-table-column label="坑宽" align="center" prop="kWidth" />
-      <el-table-column label="有、无坑" align="center" prop="hasButt" />
-      <el-table-column label="定位模式" align="center" prop="gpsMode" />
-      <el-table-column label="电力形式" align="center" prop="eleMode" />
-      <el-table-column label="行走电机" align="center" prop="walkDj" />
-      <el-table-column label="行走减速机速比" align="center" prop="walkSlow" />
-      <el-table-column label="是否带电气控制系统" align="center" prop="hasEleContro" />
-      <el-table-column label="备注" align="center" prop="note" />
-      <el-table-column label="在用项目" align="center" prop="usePro" />
-      <el-table-column label="更新时间" align="center" prop="updateTime" width="180">
-        <template #default="scope">
-          <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
-        </template>
-      </el-table-column>
+      <el-table-column label="物料编码" align="center" prop="materialCode" />
+      <el-table-column label="物料描述" align="center" prop="materialDescription" width="200"/>
+      <el-table-column label="摆渡坑宽度(mm)" align="center" prop="ferryPitWidth" />
+      <el-table-column label="摆渡车关键特征" align="center" prop="ferryKeyFeature" />
+      <el-table-column label="使用最大砖宽度(mm)" align="center" prop="maxBrickWidth" />
+      <el-table-column label="摆渡车长度(mm)" align="center" prop="ferryLength" />
+      <el-table-column label="轨道内宽(mm)" align="center" prop="trackWidth" />
+      <el-table-column label="有无坑" align="center" prop="hasPit" />
+      <el-table-column label="定位模式" align="center" prop="positioning" />
+      <el-table-column label="电力形式" align="center" prop="powerType" />
+      <el-table-column label="行走电机" align="center" prop="motor" />
+      <el-table-column label="液压功率(KW)" align="center" prop="hydraulicPower" />
+      <el-table-column label="减速机速比" align="center" prop="reducerRatio" />
+      <el-table-column label="有电气控制" align="center" prop="hasControl" />
+      <el-table-column label="备注" align="center" prop="notes" width="200"/>
+      <el-table-column label="使用项目" align="center" prop="projects" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['device:transfer:edit']">修改</el-button>
@@ -201,44 +198,47 @@
     <!-- 添加或修改摆渡车对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="transferRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="物料编码" prop="goodCode">
-          <el-input v-model="form.goodCode" placeholder="请输入物料编码" />
+        <el-form-item label="物料编码" prop="materialCode">
+          <el-input v-model="form.materialCode" placeholder="请输入物料编码" />
         </el-form-item>
-        <el-form-item label="物料描述" prop="descxxtion">
-          <el-input v-model="form.descxxtion" placeholder="请输入物料描述" />
+        <el-form-item label="物料描述" prop="materialDescription">
+          <el-input v-model="form.materialDescription" placeholder="请输入物料描述" />
         </el-form-item>
-        <el-form-item label="摆渡车长度" prop="longToall">
-          <el-input v-model="form.longToall" placeholder="请输入摆渡车长度" />
+        <el-form-item label="摆渡坑宽度(mm)" prop="ferryPitWidth">
+          <el-input v-model="form.ferryPitWidth" placeholder="请输入摆渡坑宽度(mm)" />
         </el-form-item>
-        <el-form-item label="摆渡车上轨道内度" prop="longInner">
-          <el-input v-model="form.longInner" placeholder="请输入摆渡车上轨道内度" />
+        <el-form-item label="摆渡车关键特征" prop="ferryKeyFeature">
+          <el-input v-model="form.ferryKeyFeature" placeholder="请输入摆渡车关键特征" />
         </el-form-item>
-        <el-form-item label="坑宽" prop="kWidth">
-          <el-input v-model="form.kWidth" placeholder="请输入坑宽" />
+        <el-form-item label="使用最大砖宽度(mm)" prop="maxBrickWidth">
+          <el-input v-model="form.maxBrickWidth" placeholder="请输入使用最大砖宽度(mm)" />
         </el-form-item>
-        <el-form-item label="有、无坑" prop="hasButt">
-          <el-input v-model="form.hasButt" placeholder="请输入有、无坑" />
+        <el-form-item label="摆渡车长度(mm)" prop="ferryLength">
+          <el-input v-model="form.ferryLength" placeholder="请输入摆渡车长度(mm)" />
         </el-form-item>
-        <el-form-item label="定位模式" prop="gpsMode">
-          <el-input v-model="form.gpsMode" placeholder="请输入定位模式" />
+        <el-form-item label="轨道内宽(mm)" prop="trackWidth">
+          <el-input v-model="form.trackWidth" placeholder="请输入轨道内宽(mm)" />
         </el-form-item>
-        <el-form-item label="电力形式" prop="eleMode">
-          <el-input v-model="form.eleMode" placeholder="请输入电力形式" />
+        <el-form-item label="定位模式" prop="positioning">
+          <el-input v-model="form.positioning" placeholder="请输入定位模式" />
         </el-form-item>
-        <el-form-item label="行走电机" prop="walkDj">
-          <el-input v-model="form.walkDj" placeholder="请输入行走电机" />
+        <el-form-item label="行走电机" prop="motor">
+          <el-input v-model="form.motor" placeholder="请输入行走电机" />
         </el-form-item>
-        <el-form-item label="行走减速机速比" prop="walkSlow">
-          <el-input v-model="form.walkSlow" placeholder="请输入行走减速机速比" />
+        <el-form-item label="液压功率(KW)" prop="hydraulicPower">
+          <el-input v-model="form.hydraulicPower" placeholder="请输入液压功率(KW)" />
         </el-form-item>
-        <el-form-item label="是否带电气控制系统" prop="hasEleContro">
-          <el-input v-model="form.hasEleContro" placeholder="请输入是否带电气控制系统" />
+        <el-form-item label="减速机速比" prop="reducerRatio">
+          <el-input v-model="form.reducerRatio" placeholder="请输入减速机速比" />
         </el-form-item>
-        <el-form-item label="备注" prop="note">
-          <el-input v-model="form.note" placeholder="请输入备注" />
+        <el-form-item label="有电气控制" prop="hasControl">
+          <el-input v-model="form.hasControl" placeholder="请输入有电气控制" />
         </el-form-item>
-        <el-form-item label="在用项目" prop="usePro">
-          <el-input v-model="form.usePro" placeholder="请输入在用项目" />
+        <el-form-item label="备注" prop="notes">
+          <el-input v-model="form.notes" placeholder="请输入备注" />
+        </el-form-item>
+        <el-form-item label="使用项目" prop="projects">
+          <el-input v-model="form.projects" placeholder="请输入使用项目" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -271,20 +271,22 @@ const data = reactive({
   queryParams: {
     pageNum: 1,
     pageSize: 10,
-    id: null,
-    goodCode: null,
-    descxxtion: null,
-    longToall: null,
-    longInner: null,
-    kWidth: null,
-    hasButt: null,
-    gpsMode: null,
-    eleMode: null,
-    walkDj: null,
-    walkSlow: null,
-    hasEleContro: null,
-    note: null,
-    usePro: null,
+    materialCode: null,
+    materialDescription: null,
+    ferryPitWidth: null,
+    ferryKeyFeature: null,
+    maxBrickWidth: null,
+    ferryLength: null,
+    trackWidth: null,
+    hasPit: null,
+    positioning: null,
+    powerType: null,
+    motor: null,
+    hydraulicPower: null,
+    reducerRatio: null,
+    hasControl: null,
+    notes: null,
+    projects: null
   },
   rules: {
   }
@@ -312,20 +314,22 @@ function cancel() {
 function reset() {
   form.value = {
     id: null,
-    goodCode: null,
-    descxxtion: null,
-    longToall: null,
-    longInner: null,
-    kWidth: null,
-    hasButt: null,
-    gpsMode: null,
-    eleMode: null,
-    walkDj: null,
-    walkSlow: null,
-    hasEleContro: null,
-    note: null,
-    usePro: null,
-    updateTime: null
+    materialCode: null,
+    materialDescription: null,
+    ferryPitWidth: null,
+    ferryKeyFeature: null,
+    maxBrickWidth: null,
+    ferryLength: null,
+    trackWidth: null,
+    hasPit: null,
+    positioning: null,
+    powerType: null,
+    motor: null,
+    hydraulicPower: null,
+    reducerRatio: null,
+    hasControl: null,
+    notes: null,
+    projects: null
   }
   proxy.resetForm("transferRef")
 }

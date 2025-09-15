@@ -1,134 +1,120 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="自增主键" prop="id">
+      <el-form-item label="物料编码" prop="materialCode">
         <el-input
-          v-model="queryParams.id"
-          placeholder="请输入自增主键"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="物料编码" prop="goodCode">
-        <el-input
-          v-model="queryParams.goodCode"
+          v-model="queryParams.materialCode"
           placeholder="请输入物料编码"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="物料描述" prop="goodDes">
+      <el-form-item label="物料描述" prop="materialDescription">
         <el-input
-          v-model="queryParams.goodDes"
+          v-model="queryParams.materialDescription"
           placeholder="请输入物料描述"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="移砖行程" prop="moveLength">
+      <el-form-item label="最大砖宽" prop="brickSpec">
         <el-input
-          v-model="queryParams.moveLength"
-          placeholder="请输入移砖行程"
+          v-model="queryParams.brickSpec"
+          placeholder="请输入最大砖宽"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="提升速比" prop="liftBi">
+      <el-form-item label="移砖行程" prop="travelDistance">
         <el-input
-          v-model="queryParams.liftBi"
+          v-model="queryParams.travelDistance"
+          placeholder="请输入移砖行程(mm)"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="样式" prop="style">
+        <el-input
+          v-model="queryParams.style"
+          placeholder="请输入样式"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="工位数" prop="workstationCount">
+        <el-input
+          v-model="queryParams.workstationCount"
+          placeholder="请输入工位数"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="提升速比" prop="liftRatio">
+        <el-input
+          v-model="queryParams.liftRatio"
           placeholder="请输入提升速比"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="提升齿轮直径" prop="liftD">
+      <el-form-item label="提升齿轮" prop="liftGearDiameter">
         <el-input
-          v-model="queryParams.liftD"
-          placeholder="请输入提升齿轮直径"
+          v-model="queryParams.liftGearDiameter"
+          placeholder="请输入提升齿轮直径(mm)"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="水平驱动速比" prop="liftQb">
+      <el-form-item label="驱动速比" prop="driveRatio">
         <el-input
-          v-model="queryParams.liftQb"
+          v-model="queryParams.driveRatio"
           placeholder="请输入水平驱动速比"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="水平驱动轴径" prop="liftJj">
+      <el-form-item label="驱动轴径" prop="driveShaftDiameter">
         <el-input
-          v-model="queryParams.liftJj"
-          placeholder="请输入水平驱动轴径"
+          v-model="queryParams.driveShaftDiameter"
+          placeholder="请输入水平驱动轴径(mm)"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="水平驱动同步带轮直径" prop="horiD">
+      <el-form-item label="带轮直径" prop="drivePulleyDiameter">
         <el-input
-          v-model="queryParams.horiD"
-          placeholder="请输入水平驱动同步带轮直径"
+          v-model="queryParams.drivePulleyDiameter"
+          placeholder="请输入水平驱动同步带轮直径(mm)"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="从动轴径" prop="followD">
+      <el-form-item label="从动轴径" prop="drivenShaftDiameter">
         <el-input
-          v-model="queryParams.followD"
-          placeholder="请输入从动轴径"
+          v-model="queryParams.drivenShaftDiameter"
+          placeholder="请输入从动轴径(mm)"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="吸盘数量" prop="xpNum">
+      <el-form-item label="吸盘数量" prop="suctionCupCount">
         <el-input
-          v-model="queryParams.xpNum"
+          v-model="queryParams.suctionCupCount"
           placeholder="请输入吸盘数量"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="吸盘大小" prop="xpRange">
+      <el-form-item label="吸盘大小" prop="suctionCupSize">
         <el-input
-          v-model="queryParams.xpRange"
-          placeholder="请输入吸盘大小"
+          v-model="queryParams.suctionCupSize"
+          placeholder="请输入吸盘大小(mm)"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="电磁阀数量" prop="dcfNum">
-        <el-input
-          v-model="queryParams.dcfNum"
-          placeholder="请输入电磁阀数量"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="真空发生器数量" prop="jkNum">
-        <el-input
-          v-model="queryParams.jkNum"
-          placeholder="请输入真空发生器数量"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="叉砖口内空" prop="xzhuanK">
-        <el-input
-          v-model="queryParams.xzhuanK"
-          placeholder="请输入叉砖口内空"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="更新时间" prop="updateTime">
-        <el-date-picker clearable
-          v-model="queryParams.updateTime"
-          type="date"
-          value-format="YYYY-MM-DD"
-          placeholder="请选择更新时间">
-        </el-date-picker>
-      </el-form-item>
+     
+  
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -179,34 +165,29 @@
 
     <el-table v-loading="loading" :data="brickList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="自增主键" align="center" prop="id" />
-      <el-table-column label="物料编码" align="center" prop="goodCode" />
-      <el-table-column label="物料描述" align="center" prop="goodDes" />
-      <el-table-column label="适用砖规格" align="center" prop="suitType" />
-      <el-table-column label="移砖行程" align="center" prop="moveLength" />
-      <el-table-column label="样式" align="center" prop="type" />
-      <el-table-column label="提升速比" align="center" prop="liftBi" />
-      <el-table-column label="提升齿轮直径" align="center" prop="liftD" />
-      <el-table-column label="水平驱动速比" align="center" prop="liftQb" />
-      <el-table-column label="水平驱动轴径" align="center" prop="liftJj" />
-      <el-table-column label="水平驱动同步带轮直径" align="center" prop="horiD" />
-      <el-table-column label="从动轴径" align="center" prop="followD" />
-      <el-table-column label="吸盘数量" align="center" prop="xpNum" />
-      <el-table-column label="吸盘形式" align="center" prop="xpType" />
-      <el-table-column label="吸盘大小" align="center" prop="xpRange" />
-      <el-table-column label="电磁阀数量" align="center" prop="dcfNum" />
-      <el-table-column label="电磁阀型号" align="center" prop="dcfType" />
-      <el-table-column label="真空发生器数量" align="center" prop="jkNum" />
-      <el-table-column label="真空发生器型号" align="center" prop="jkType" />
-      <el-table-column label="叉砖口内空" align="center" prop="xzhuanK" />
-      <el-table-column label="备注1" align="center" prop="note" />
-      <el-table-column label="项目地址" align="center" prop="usePlace" />
-      <el-table-column label="备注2" align="center" prop="note2" />
-      <el-table-column label="更新时间" align="center" prop="updateTime" width="180">
-        <template #default="scope">
-          <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
-        </template>
-      </el-table-column>
+      <el-table-column label="序号" align="center" prop="id" />
+      <el-table-column label="物料编码" align="center" prop="materialCode" />
+      <el-table-column label="物料描述" align="center" prop="materialDescription" width="200"/>
+      <el-table-column label="适用最大砖宽" align="center" prop="brickSpec" />
+      <el-table-column label="移砖行程(mm)" align="center" prop="travelDistance" />
+      <el-table-column label="样式" align="center" prop="style" />
+      <el-table-column label="工位数" align="center" prop="workstationCount" />
+      <el-table-column label="提升速比" align="center" prop="liftRatio" />
+      <el-table-column label="提升齿轮直径(mm)" align="center" prop="liftGearDiameter" />
+      <el-table-column label="水平驱动速比" align="center" prop="driveRatio" />
+      <el-table-column label="水平驱动轴径(mm)" align="center" prop="driveShaftDiameter" />
+      <el-table-column label="水平驱动同步带轮直径(mm)" align="center" prop="drivePulleyDiameter" />
+      <el-table-column label="从动轴径(mm)" align="center" prop="drivenShaftDiameter" />
+      <el-table-column label="吸盘数量" align="center" prop="suctionCupCount" />
+      <el-table-column label="吸盘形式" align="center" prop="suctionCupType" />
+      <el-table-column label="吸盘大小(mm)" align="center" prop="suctionCupSize" />
+      <el-table-column label="电磁阀数量" align="center" prop="solenoidValveCount" />
+      <el-table-column label="电磁阀型号" align="center" prop="solenoidValveModel" />
+      <el-table-column label="真空发生器数量" align="center" prop="vacuumGeneratorCount" />
+      <el-table-column label="真空发生器型号" align="center" prop="vacuumGeneratorModel" />
+      <el-table-column label="叉砖口内空(mm)" align="center" prop="forkOpening" />
+      <el-table-column label="备注" align="center" prop="notes" width="200"/>
+      <el-table-column label="在用项目" align="center" prop="usedProjects" width="200"/>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['device:brick:edit']">修改</el-button>
@@ -226,56 +207,68 @@
     <!-- 添加或修改砖机对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="brickRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="物料编码" prop="goodCode">
-          <el-input v-model="form.goodCode" placeholder="请输入物料编码" />
+        <el-form-item label="物料编码" prop="materialCode">
+          <el-input v-model="form.materialCode" placeholder="请输入物料编码" />
         </el-form-item>
-        <el-form-item label="物料描述" prop="goodDes">
-          <el-input v-model="form.goodDes" placeholder="请输入物料描述" />
+        <el-form-item label="物料描述" prop="materialDescription">
+          <el-input v-model="form.materialDescription" placeholder="请输入物料描述" />
         </el-form-item>
-        <el-form-item label="移砖行程" prop="moveLength">
-          <el-input v-model="form.moveLength" placeholder="请输入移砖行程" />
+        <el-form-item label="适用最大砖宽" prop="brickSpec">
+          <el-input v-model="form.brickSpec" placeholder="请输入适用最大砖宽" />
         </el-form-item>
-        <el-form-item label="提升速比" prop="liftBi">
-          <el-input v-model="form.liftBi" placeholder="请输入提升速比" />
+        <el-form-item label="移砖行程(mm)" prop="travelDistance">
+          <el-input v-model="form.travelDistance" placeholder="请输入移砖行程(mm)" />
         </el-form-item>
-        <el-form-item label="提升齿轮直径" prop="liftD">
-          <el-input v-model="form.liftD" placeholder="请输入提升齿轮直径" />
+        <el-form-item label="样式" prop="style">
+          <el-input v-model="form.style" placeholder="请输入样式" />
         </el-form-item>
-        <el-form-item label="水平驱动速比" prop="liftQb">
-          <el-input v-model="form.liftQb" placeholder="请输入水平驱动速比" />
+        <el-form-item label="工位数" prop="workstationCount">
+          <el-input v-model="form.workstationCount" placeholder="请输入工位数" />
         </el-form-item>
-        <el-form-item label="水平驱动轴径" prop="liftJj">
-          <el-input v-model="form.liftJj" placeholder="请输入水平驱动轴径" />
+        <el-form-item label="提升速比" prop="liftRatio">
+          <el-input v-model="form.liftRatio" placeholder="请输入提升速比" />
         </el-form-item>
-        <el-form-item label="水平驱动同步带轮直径" prop="horiD">
-          <el-input v-model="form.horiD" placeholder="请输入水平驱动同步带轮直径" />
+        <el-form-item label="提升齿轮直径(mm)" prop="liftGearDiameter">
+          <el-input v-model="form.liftGearDiameter" placeholder="请输入提升齿轮直径(mm)" />
         </el-form-item>
-        <el-form-item label="从动轴径" prop="followD">
-          <el-input v-model="form.followD" placeholder="请输入从动轴径" />
+        <el-form-item label="水平驱动速比" prop="driveRatio">
+          <el-input v-model="form.driveRatio" placeholder="请输入水平驱动速比" />
         </el-form-item>
-        <el-form-item label="吸盘数量" prop="xpNum">
-          <el-input v-model="form.xpNum" placeholder="请输入吸盘数量" />
+        <el-form-item label="水平驱动轴径(mm)" prop="driveShaftDiameter">
+          <el-input v-model="form.driveShaftDiameter" placeholder="请输入水平驱动轴径(mm)" />
         </el-form-item>
-        <el-form-item label="吸盘大小" prop="xpRange">
-          <el-input v-model="form.xpRange" placeholder="请输入吸盘大小" />
+        <el-form-item label="水平驱动同步带轮直径(mm)" prop="drivePulleyDiameter">
+          <el-input v-model="form.drivePulleyDiameter" placeholder="请输入水平驱动同步带轮直径(mm)" />
         </el-form-item>
-        <el-form-item label="电磁阀数量" prop="dcfNum">
-          <el-input v-model="form.dcfNum" placeholder="请输入电磁阀数量" />
+        <el-form-item label="从动轴径(mm)" prop="drivenShaftDiameter">
+          <el-input v-model="form.drivenShaftDiameter" placeholder="请输入从动轴径(mm)" />
         </el-form-item>
-        <el-form-item label="真空发生器数量" prop="jkNum">
-          <el-input v-model="form.jkNum" placeholder="请输入真空发生器数量" />
+        <el-form-item label="吸盘数量" prop="suctionCupCount">
+          <el-input v-model="form.suctionCupCount" placeholder="请输入吸盘数量" />
         </el-form-item>
-        <el-form-item label="叉砖口内空" prop="xzhuanK">
-          <el-input v-model="form.xzhuanK" placeholder="请输入叉砖口内空" />
+        <el-form-item label="吸盘大小(mm)" prop="suctionCupSize">
+          <el-input v-model="form.suctionCupSize" placeholder="请输入吸盘大小(mm)" />
         </el-form-item>
-        <el-form-item label="备注1" prop="note">
-          <el-input v-model="form.note" type="textarea" placeholder="请输入内容" />
+        <el-form-item label="电磁阀数量" prop="solenoidValveCount">
+          <el-input v-model="form.solenoidValveCount" placeholder="请输入电磁阀数量" />
         </el-form-item>
-        <el-form-item label="项目地址" prop="usePlace">
-          <el-input v-model="form.usePlace" type="textarea" placeholder="请输入内容" />
+        <el-form-item label="电磁阀型号" prop="solenoidValveModel">
+          <el-input v-model="form.solenoidValveModel" placeholder="请输入电磁阀型号" />
         </el-form-item>
-        <el-form-item label="备注2" prop="note2">
-          <el-input v-model="form.note2" type="textarea" placeholder="请输入内容" />
+        <el-form-item label="真空发生器数量" prop="vacuumGeneratorCount">
+          <el-input v-model="form.vacuumGeneratorCount" placeholder="请输入真空发生器数量" />
+        </el-form-item>
+        <el-form-item label="真空发生器型号" prop="vacuumGeneratorModel">
+          <el-input v-model="form.vacuumGeneratorModel" placeholder="请输入真空发生器型号" />
+        </el-form-item>
+        <el-form-item label="叉砖口内空(mm)" prop="forkOpening">
+          <el-input v-model="form.forkOpening" placeholder="请输入叉砖口内空(mm)" />
+        </el-form-item>
+        <el-form-item label="备注" prop="notes">
+          <el-input v-model="form.notes" type="textarea" placeholder="请输入内容" />
+        </el-form-item>
+        <el-form-item label="在用项目" prop="usedProjects">
+          <el-input v-model="form.usedProjects" type="textarea" placeholder="请输入内容" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -308,32 +301,36 @@ const data = reactive({
   queryParams: {
     pageNum: 1,
     pageSize: 10,
-    id: null,
-    goodCode: null,
-    goodDes: null,
-    suitType: null,
-    moveLength: null,
-    type: null,
-    liftBi: null,
-    liftD: null,
-    liftQb: null,
-    liftJj: null,
-    horiD: null,
-    followD: null,
-    xpNum: null,
-    xpType: null,
-    xpRange: null,
-    dcfNum: null,
-    dcfType: null,
-    jkNum: null,
-    jkType: null,
-    xzhuanK: null,
-    note: null,
-    usePlace: null,
-    note2: null,
-    updateTime: null
+    materialCode: null,
+    materialDescription: null,
+    brickSpec: null,
+    travelDistance: null,
+    style: null,
+    workstationCount: null,
+    liftRatio: null,
+    liftGearDiameter: null,
+    driveRatio: null,
+    driveShaftDiameter: null,
+    drivePulleyDiameter: null,
+    drivenShaftDiameter: null,
+    suctionCupCount: null,
+    suctionCupType: null,
+    suctionCupSize: null,
+    solenoidValveCount: null,
+    solenoidValveModel: null,
+    vacuumGeneratorCount: null,
+    vacuumGeneratorModel: null,
+    forkOpening: null,
+    notes: null,
+    usedProjects: null
   },
   rules: {
+    materialCode: [
+      { required: true, message: "物料编码不能为空", trigger: "blur" }
+    ],
+    materialDescription: [
+      { required: true, message: "物料描述不能为空", trigger: "blur" }
+    ],
   }
 })
 
@@ -359,29 +356,28 @@ function cancel() {
 function reset() {
   form.value = {
     id: null,
-    goodCode: null,
-    goodDes: null,
-    suitType: null,
-    moveLength: null,
-    type: null,
-    liftBi: null,
-    liftD: null,
-    liftQb: null,
-    liftJj: null,
-    horiD: null,
-    followD: null,
-    xpNum: null,
-    xpType: null,
-    xpRange: null,
-    dcfNum: null,
-    dcfType: null,
-    jkNum: null,
-    jkType: null,
-    xzhuanK: null,
-    note: null,
-    usePlace: null,
-    note2: null,
-    updateTime: null
+    materialCode: null,
+    materialDescription: null,
+    brickSpec: null,
+    travelDistance: null,
+    style: null,
+    workstationCount: null,
+    liftRatio: null,
+    liftGearDiameter: null,
+    driveRatio: null,
+    driveShaftDiameter: null,
+    drivePulleyDiameter: null,
+    drivenShaftDiameter: null,
+    suctionCupCount: null,
+    suctionCupType: null,
+    suctionCupSize: null,
+    solenoidValveCount: null,
+    solenoidValveModel: null,
+    vacuumGeneratorCount: null,
+    vacuumGeneratorModel: null,
+    forkOpening: null,
+    notes: null,
+    usedProjects: null
   }
   proxy.resetForm("brickRef")
 }

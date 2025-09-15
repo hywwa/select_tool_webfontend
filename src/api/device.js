@@ -1,40 +1,40 @@
 // @/api/device.js
 import request from '@/utils/request'
 
-// 搜索砖机设备
-export function searchBrickDevices(data) {
-    return request({
-        url: '/device/search/brick',
-        method: 'post',
-        data
-    })
+// 1. 砖机接口（后端提供）
+export function listBrick(query) {
+  return request({
+    url: '/device/brick/list',
+    method: 'get',
+    params: query // GET请求用params传参（分页、筛选参数）
+  })
 }
 
-// 搜索运输车设备
-export function searchTransportDevices(data) {
-    return request({
-        url: '/device/search/transport',
-        method: 'post',
-        data
-    })
+// 2. 运输车接口（需后端对应实现，前端先按标准格式定义）
+export function listTransport(query) {
+  return request({
+    url: '/device/transport/list', // 假设后端运输车列表接口路径
+    method: 'get',
+    params: query
+  })
 }
 
-// 搜索摆渡车设备
-export function searchTransferDevices(data) {
-    return request({
-        url: '/device/search/transfer',
-        method: 'post',
-        data
-    })
+// 3. 摆渡车接口（同理）
+export function listTransfer(query) {
+  return request({
+    url: '/device/transfer/list', // 假设后端摆渡车列表接口路径
+    method: 'get',
+    params: query
+  })
 }
 
-// 搜索拍齐顶升设备
-export function searchLiftDevices(data) {
-    return request({
-        url: '/device/search/lift',
-        method: 'post',
-        data
-    })
+// 4. 拍齐顶升接口（同理）
+export function listLift(query) {
+  return request({
+    url: '/device/lift/list', // 假设后端拍齐顶升列表接口路径
+    method: 'get',
+    params: query
+  })
 }
 
 // 导出已选设备

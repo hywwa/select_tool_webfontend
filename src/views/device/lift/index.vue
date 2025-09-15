@@ -1,98 +1,90 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="自增主键" prop="id">
+      <el-form-item label="物料编码" prop="materialCode">
         <el-input
-          v-model="queryParams.id"
-          placeholder="请输入自增主键"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="物料编码" prop="goodCode">
-        <el-input
-          v-model="queryParams.goodCode"
+          v-model="queryParams.materialCode"
           placeholder="请输入物料编码"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="物料描述" prop="goodDescriptin">
+      <el-form-item label="物料描述" prop="materialDescription">
         <el-input
-          v-model="queryParams.goodDescriptin"
+          v-model="queryParams.materialDescription"
           placeholder="请输入物料描述"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="适用砖宽度范围" prop="suitWidth">
+      <el-form-item label="砖宽范围" prop="brickWidthRange">
         <el-input
-          v-model="queryParams.suitWidth"
-          placeholder="请输入适用砖宽度范围"
+          v-model="queryParams.brickWidthRange"
+          placeholder="请输入适用砖宽度范围(mm)"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="适用砖厚度" prop="suitThick">
+      <el-form-item label="最大砖厚" prop="brickThickness">
         <el-input
-          v-model="queryParams.suitThick"
-          placeholder="请输入适用砖厚度"
+          v-model="queryParams.brickThickness"
+          placeholder="请输入最大砖厚度(mm)"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="安装适用线架宽度" prop="suitXjk">
+      <el-form-item label="线架宽度" prop="frameWidth">
         <el-input
-          v-model="queryParams.suitXjk"
-          placeholder="请输入安装适用线架宽度"
+          v-model="queryParams.frameWidth"
+          placeholder="请输入安装适用线架宽度(mm)"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="拍齐气缸" prop="sameGang">
+      <el-form-item label="拍齐气缸" prop="alignCylinder">
         <el-input
-          v-model="queryParams.sameGang"
+          v-model="queryParams.alignCylinder"
           placeholder="请输入拍齐气缸"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="顶升气缸" prop="liftGang">
+      <el-form-item label="顶升气缸" prop="liftCylinder">
         <el-input
-          v-model="queryParams.liftGang"
+          v-model="queryParams.liftCylinder"
           placeholder="请输入顶升气缸"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="托砖板长度" prop="liftLength">
+      <el-form-item label="托砖板长" prop="plateLength">
         <el-input
-          v-model="queryParams.liftLength"
-          placeholder="请输入托砖板长度"
+          v-model="queryParams.plateLength"
+          placeholder="请输入托砖板长度(mm)"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="拍齐轮个数" prop="liftLunNum">
+      <el-form-item label="拍齐轮数" prop="alignWheelCount">
         <el-input
-          v-model="queryParams.liftLunNum"
+          v-model="queryParams.alignWheelCount"
           placeholder="请输入拍齐轮个数"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="导向形式" prop="gpsMode">
+      <el-form-item label="导向滑块" prop="guideSlider">
         <el-input
-          v-model="queryParams.gpsMode"
-          placeholder="请输入导向形式"
+          v-model="queryParams.guideSlider"
+          placeholder="请输入导向滑块"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="挡砖胶皮厚度" prop="stopThick">
+      <el-form-item label="挡砖胶皮" prop="rubberThickness">
         <el-input
-          v-model="queryParams.stopThick"
-          placeholder="请输入挡砖胶皮厚度"
+          v-model="queryParams.rubberThickness"
+          placeholder="请输入挡砖胶皮厚度(mm)"
           clearable
           @keyup.enter="handleQuery"
         />
@@ -147,27 +139,21 @@
 
     <el-table v-loading="loading" :data="liftList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="自增主键" align="center" prop="id" />
-      <el-table-column label="物料编码" align="center" prop="goodCode" />
-      <el-table-column label="物料描述" align="center" prop="goodDescriptin" />
-      <el-table-column label="适用砖宽度范围" align="center" prop="suitWidth" />
-      <el-table-column label="适用砖厚度" align="center" prop="suitThick" />
-      <el-table-column label="安装适用线架宽度" align="center" prop="suitXjk" />
-      <el-table-column label="底架形式" align="center" prop="buttonMode" />
-      <el-table-column label="拍齐气缸" align="center" prop="sameGang" />
-      <el-table-column label="顶升气缸" align="center" prop="liftGang" />
-      <el-table-column label="托砖板长度" align="center" prop="liftLength" />
-      <el-table-column label="拍齐轮个数" align="center" prop="liftLunNum" />
-      <el-table-column label="导向形式" align="center" prop="gpsMode" />
-      <el-table-column label="导向滑块" align="center" prop="gpsHk" />
-      <el-table-column label="挡砖胶皮厚度" align="center" prop="stopThick" />
-      <el-table-column label="备注" align="center" prop="note" />
-      <el-table-column label="在用项目" align="center" prop="useProject" />
-      <el-table-column label="更新时间" align="center" prop="updateTime" width="180">
-        <template #default="scope">
-          <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
-        </template>
-      </el-table-column>
+      <el-table-column label="物料编码" align="center" prop="materialCode" />
+      <el-table-column label="物料描述" align="center" prop="materialDescription" width="200"/>
+      <el-table-column label="适用砖宽度范围(mm)" align="center" prop="brickWidthRange" />
+      <el-table-column label="适用砖厚度(mm)" align="center" prop="brickThickness" />
+      <el-table-column label="安装适用线架宽度(mm)" align="center" prop="frameWidth" />
+      <el-table-column label="底架形式" align="center" prop="baseType" />
+      <el-table-column label="拍齐气缸" align="center" prop="alignCylinder" />
+      <el-table-column label="顶升气缸" align="center" prop="liftCylinder" />
+      <el-table-column label="托砖板长度(mm)" align="center" prop="plateLength" />
+      <el-table-column label="拍齐轮个数" align="center" prop="alignWheelCount" />
+      <el-table-column label="导向形式" align="center" prop="guideType" />
+      <el-table-column label="导向滑块" align="center" prop="guideSlider" />
+      <el-table-column label="挡砖胶皮厚度(mm)" align="center" prop="rubberThickness" />
+      <el-table-column label="备注" align="center" prop="notes" width="200"/>
+      <el-table-column label="在用项目" align="center" prop="usedProjects" width="200"/>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['device:lift:edit']">修改</el-button>
@@ -187,44 +173,44 @@
     <!-- 添加或修改拍齐顶升对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="liftRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="物料编码" prop="goodCode">
-          <el-input v-model="form.goodCode" placeholder="请输入物料编码" />
+        <el-form-item label="物料编码" prop="materialCode">
+          <el-input v-model="form.materialCode" placeholder="请输入物料编码" />
         </el-form-item>
-        <el-form-item label="物料描述" prop="goodDescriptin">
-          <el-input v-model="form.goodDescriptin" placeholder="请输入物料描述" />
+        <el-form-item label="物料描述" prop="materialDescription">
+          <el-input v-model="form.materialDescription" placeholder="请输入物料描述" />
         </el-form-item>
-        <el-form-item label="适用砖宽度范围" prop="suitWidth">
-          <el-input v-model="form.suitWidth" placeholder="请输入适用砖宽度范围" />
+        <el-form-item label="适用砖宽度范围(mm)" prop="brickWidthRange">
+          <el-input v-model="form.brickWidthRange" placeholder="请输入适用砖宽度范围(mm)" />
         </el-form-item>
-        <el-form-item label="适用砖厚度" prop="suitThick">
-          <el-input v-model="form.suitThick" placeholder="请输入适用砖厚度" />
+        <el-form-item label="适用砖厚度(mm)" prop="brickThickness">
+          <el-input v-model="form.brickThickness" placeholder="请输入适用砖厚度(mm)" />
         </el-form-item>
-        <el-form-item label="安装适用线架宽度" prop="suitXjk">
-          <el-input v-model="form.suitXjk" placeholder="请输入安装适用线架宽度" />
+        <el-form-item label="安装适用线架宽度(mm)" prop="frameWidth">
+          <el-input v-model="form.frameWidth" placeholder="请输入安装适用线架宽度(mm)" />
         </el-form-item>
-        <el-form-item label="拍齐气缸" prop="sameGang">
-          <el-input v-model="form.sameGang" placeholder="请输入拍齐气缸" />
+        <el-form-item label="拍齐气缸" prop="alignCylinder">
+          <el-input v-model="form.alignCylinder" placeholder="请输入拍齐气缸" />
         </el-form-item>
-        <el-form-item label="顶升气缸" prop="liftGang">
-          <el-input v-model="form.liftGang" placeholder="请输入顶升气缸" />
+        <el-form-item label="顶升气缸" prop="liftCylinder">
+          <el-input v-model="form.liftCylinder" placeholder="请输入顶升气缸" />
         </el-form-item>
-        <el-form-item label="托砖板长度" prop="liftLength">
-          <el-input v-model="form.liftLength" placeholder="请输入托砖板长度" />
+        <el-form-item label="托砖板长度(mm)" prop="plateLength">
+          <el-input v-model="form.plateLength" placeholder="请输入托砖板长度(mm)" />
         </el-form-item>
-        <el-form-item label="拍齐轮个数" prop="liftLunNum">
-          <el-input v-model="form.liftLunNum" placeholder="请输入拍齐轮个数" />
+        <el-form-item label="拍齐轮个数" prop="alignWheelCount">
+          <el-input v-model="form.alignWheelCount" placeholder="请输入拍齐轮个数" />
         </el-form-item>
-        <el-form-item label="导向形式" prop="gpsMode">
-          <el-input v-model="form.gpsMode" placeholder="请输入导向形式" />
+        <el-form-item label="导向滑块" prop="guideSlider">
+          <el-input v-model="form.guideSlider" placeholder="请输入导向滑块" />
         </el-form-item>
-        <el-form-item label="挡砖胶皮厚度" prop="stopThick">
-          <el-input v-model="form.stopThick" placeholder="请输入挡砖胶皮厚度" />
+        <el-form-item label="挡砖胶皮厚度(mm)" prop="rubberThickness">
+          <el-input v-model="form.rubberThickness" placeholder="请输入挡砖胶皮厚度(mm)" />
         </el-form-item>
-        <el-form-item label="备注" prop="note">
-          <el-input v-model="form.note" type="textarea" placeholder="请输入内容" />
+        <el-form-item label="备注" prop="notes">
+          <el-input v-model="form.notes" type="textarea" placeholder="请输入内容" />
         </el-form-item>
-        <el-form-item label="在用项目" prop="useProject">
-          <el-input v-model="form.useProject" type="textarea" placeholder="请输入内容" />
+        <el-form-item label="在用项目" prop="usedProjects">
+          <el-input v-model="form.usedProjects" type="textarea" placeholder="请输入内容" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -257,24 +243,29 @@ const data = reactive({
   queryParams: {
     pageNum: 1,
     pageSize: 10,
-    id: null,
-    goodCode: null,
-    goodDescriptin: null,
-    suitWidth: null,
-    suitThick: null,
-    suitXjk: null,
-    buttonMode: null,
-    sameGang: null,
-    liftGang: null,
-    liftLength: null,
-    liftLunNum: null,
-    gpsMode: null,
-    gpsHk: null,
-    stopThick: null,
-    note: null,
-    useProject: null,
+    materialCode: null,
+    materialDescription: null,
+    brickWidthRange: null,
+    brickThickness: null,
+    frameWidth: null,
+    baseType: null,
+    alignCylinder: null,
+    liftCylinder: null,
+    plateLength: null,
+    alignWheelCount: null,
+    guideType: null,
+    guideSlider: null,
+    rubberThickness: null,
+    notes: null,
+    usedProjects: null
   },
   rules: {
+    materialCode: [
+      { required: true, message: "物料编码不能为空", trigger: "blur" }
+    ],
+    materialDescription: [
+      { required: true, message: "物料描述不能为空", trigger: "blur" }
+    ],
   }
 })
 
@@ -300,22 +291,21 @@ function cancel() {
 function reset() {
   form.value = {
     id: null,
-    goodCode: null,
-    goodDescriptin: null,
-    suitWidth: null,
-    suitThick: null,
-    suitXjk: null,
-    buttonMode: null,
-    sameGang: null,
-    liftGang: null,
-    liftLength: null,
-    liftLunNum: null,
-    gpsMode: null,
-    gpsHk: null,
-    stopThick: null,
-    note: null,
-    useProject: null,
-    updateTime: null
+    materialCode: null,
+    materialDescription: null,
+    brickWidthRange: null,
+    brickThickness: null,
+    frameWidth: null,
+    baseType: null,
+    alignCylinder: null,
+    liftCylinder: null,
+    plateLength: null,
+    alignWheelCount: null,
+    guideType: null,
+    guideSlider: null,
+    rubberThickness: null,
+    notes: null,
+    usedProjects: null
   }
   proxy.resetForm("liftRef")
 }
