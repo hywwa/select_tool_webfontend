@@ -28,6 +28,17 @@
       <!-- 功能入口区 -->
       <el-col :sm="24" :lg="12" class="features-column">
         <div class="features-grid">
+           <div class="feature-card" @mouseenter="featureHover = 'analysis'" @mouseleave="featureHover = ''">
+            <div class="feature-icon" :class="{ active: featureHover === 'analysis' }">
+              <i class="el-icon-line-chart"></i>
+            </div>
+            <h3>选型测试</h3>
+            <p>快速选型</p>
+            <el-button type="primary" size="small" @click="$router.push('/selectDevice/DeviceSearch/DeviceSearch/DeviceSearch')">
+              开始选型
+            </el-button>
+          </div>
+
           <div class="feature-card" @mouseenter="featureHover = 'project'" @mouseleave="featureHover = ''">
             <div class="feature-icon" :class="{ active: featureHover === 'project' }">
               <i class="el-icon-sitemap"></i>
@@ -50,16 +61,7 @@
             </el-button>
           </div>
           
-          <div class="feature-card" @mouseenter="featureHover = 'analysis'" @mouseleave="featureHover = ''">
-            <div class="feature-icon" :class="{ active: featureHover === 'analysis' }">
-              <i class="el-icon-line-chart"></i>
-            </div>
-            <h3>数据分析</h3>
-            <p>多维度数据统计，辅助决策分析</p>
-            <el-button type="primary" size="small" @click="$router.push('/selectDevice/project')">
-              查看报表
-            </el-button>
-          </div>
+         
         </div>
       </el-col>
     </el-row>

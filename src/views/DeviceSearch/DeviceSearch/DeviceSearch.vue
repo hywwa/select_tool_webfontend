@@ -1,20 +1,20 @@
 <template>
   <div class="device-search-page">
-    <!-- 步骤指示器 -->
+    <!-- 步骤指示器 - 优化移动端显示 -->
     <div class="steps-indicator">
       <div class="step-item" :class="{ active: currentStep >= 1, completed: currentStep > 1 }">
         <div class="step-number">1</div>
-        <div class="step-name">参数设置</div>
+        <div class="step-name">参数</div>
       </div>
       <div class="step-line" :class="{ completed: currentStep > 1 }"></div>
       <div class="step-item" :class="{ active: currentStep >= 2, completed: currentStep > 2 }">
         <div class="step-number">2</div>
-        <div class="step-name">设备选择</div>
+        <div class="step-name">选择</div>
       </div>
       <div class="step-line" :class="{ completed: currentStep > 2 }"></div>
       <div class="step-item" :class="{ active: currentStep >= 3 }">
         <div class="step-number">3</div>
-        <div class="step-name">选购记录</div>
+        <div class="step-name">记录</div>
       </div>
     </div>
 
@@ -25,44 +25,46 @@
         <h2>设备参数设置</h2>
         
         <div class="param-form-container">
-          <!-- 砖规格数量设置 -->
+          <!-- 砖规格数量设置 - 移动端优化为滚动列表 -->
           <div class="form-section">
             <h3>砖规格与数量</h3>
-            <el-table :data="brickSpecs" border>
-              <el-table-column prop="spec" label="砖规格（长×宽）" width="200"></el-table-column>
-              <el-table-column label="砖片数">
-                <template #default="scope">
-                  <el-input-number
-                    v-model="scope.row.quantity"
-                    :min="0"
-                    controls-position="right"
-                    size="small"
-                    @change="handleBrickQuantityChange(scope.row)"
-                  ></el-input-number>
-                </template>
-              </el-table-column>
-            </el-table>
+            <div class="scrollable-table-container">
+              <el-table :data="brickSpecs" border size="mini">
+                <el-table-column prop="spec" label="砖规格（长×宽）" width="150"></el-table-column>
+                <el-table-column label="砖片数">
+                  <template #default="scope">
+                    <el-input-number
+                      v-model="scope.row.quantity"
+                      :min="0"
+                      controls-position="right"
+                      size="small"
+                      @change="handleBrickQuantityChange(scope.row)"
+                    ></el-input-number>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
           </div>
 
-          <!-- 砖机设备参数 -->
+          <!-- 砖机设备参数 - 移动端优化为紧凑布局 -->
           <div class="form-section">
             <h3>砖机设备参数</h3>
-            <el-form ref="formRef" :model="form" label-width="120px">
+            <el-form ref="formRef" :model="form" label-width="100px" size="small">
               <el-form-item label="最大砖宽">
-                <el-select v-model="form.brickSpec" placeholder="请选择最大砖宽">
+                <el-select v-model="form.brickSpec" placeholder="请选择">
                   <el-option label="900" value="900"></el-option>
                   <el-option label="1600" value="1600"></el-option>
                   <el-option label="1200" value="1200"></el-option>
                 </el-select>
               </el-form-item>
               <el-form-item label="样式">
-                <el-select v-model="form.style" placeholder="请选择样式">
+                <el-select v-model="form.style" placeholder="请选择">
                   <el-option label="一体式" value="一体式"></el-option>
                   <el-option label="分体式" value="分体式"></el-option>
                 </el-select>
               </el-form-item>
               <el-form-item label="工位数">
-                <el-select v-model="form.workstationCount" placeholder="请选择工位数">
+                <el-select v-model="form.workstationCount" placeholder="请选择">
                   <el-option label="2" value="2"></el-option>
                   <el-option label="3" value="3"></el-option>
                 </el-select>
@@ -70,103 +72,101 @@
             </el-form>
           </div>
 
-          <!-- 摆渡车设备参数 -->
-          <div class="form-section">
-            <h3>摆渡车设备参数</h3>
-            <el-form ref="transferFormRef" :model="transferForm" label-width="120px">
-              <el-form-item label="摆渡坑宽">
-                <el-select v-model="transferForm.ferryPitWidth"  placeholder="请输入摆渡坑宽度">
-                  <el-option label="4500" value="4500"></el-option>
-                  <el-option label="4800" value="4800"></el-option>
-                  <el-option label="5500" value="5500"></el-option>
-                </el-select>
-              </el-form-item>
-              
-              <el-form-item label="摆渡车关键特征">
-                <el-select v-model="transferForm.ferryKeyFeature" placeholder="请选择摆渡车关键特征">
-                  <el-option label="常规" value="常规"></el-option>
-                  <el-option label="鱼骨" value="鱼骨"></el-option>
-                  <el-option label="升降摆渡" value="升降摆渡"></el-option>
-                </el-select>
-              </el-form-item>
-              
-              <el-form-item label="最大砖宽">
-                <el-select v-model="transferForm.maxBrickWidth" placeholder="请选择最大砖宽">
-                  <el-option label="非液压升降摆渡" value="非液压升降摆渡"></el-option>
-                  <el-option label="900" value="900"></el-option>
-                  <el-option label="1200" value="1200"></el-option>
-                </el-select>
-              </el-form-item>
-              
-              <el-form-item label="有无坑">
-                <el-select v-model="transferForm.hasPit" placeholder="请选择">
-                  <el-option label="有坑" value="有坑"></el-option>
-                  <el-option label="无坑" value="无坑"></el-option>
-                </el-select>
-              </el-form-item>
-            </el-form>
-          </div>
-
-          <!-- 运输车设备参数 -->
-          <div class="form-section">
-            <h3>运输车设备参数</h3>
-            <el-form ref="transportFormRef" :model="transportForm" label-width="120px">
-              <el-form-item label="摆渡坑宽">
-                <el-select v-model="transportForm.pitWidth"  placeholder="请输入摆渡坑宽度">
-                  <el-option label="4500" value="4500"></el-option>
-                  <el-option label="5500" value="5500"></el-option>
-                </el-select>
-              </el-form-item>
-              
-              <el-form-item label="托升支架形式">
-                <el-select v-model="transportForm.supportType" placeholder="请选择托升支架形式">
-                  <el-option label="常规" value="常规"></el-option>
-                  <el-option label="鱼骨" value="鱼骨"></el-option>
-                </el-select>
-              </el-form-item>
-              
-              <el-form-item label="电力形式">
-                <el-select v-model="transportForm.powerType" placeholder="请选择电力形式">
-                  <el-option label="交流" value="交流"></el-option>
-                  <el-option label="直流" value="直流"></el-option>
-                </el-select>
-              </el-form-item>
-            </el-form>
-          </div>
-
-          <!-- 拍齐顶升设备参数 -->
-          <div class="form-section">
-            <h3>拍齐顶升设备参数</h3>
-            <el-form ref="liftFormRef" :model="liftForm" label-width="120px">    
-              <el-form-item label="最大砖厚度">
-                <el-select v-model="liftForm.maxBrickThickness" placeholder="请选择最大砖厚度">
-                  <el-option label="15" value="15"></el-option>
-                  <el-option label="20" value="20"></el-option>
-                  <el-option label="48" value="48"></el-option>
-                </el-select>
-              </el-form-item>
-            </el-form>
-          </div>
+          <!-- 其他设备参数区域 - 折叠面板优化移动端空间 -->
+          <el-collapse class="mobile-collapse">
+            <el-collapse-item title="摆渡车设备参数" name="transfer">
+              <el-form ref="transferFormRef" :model="transferForm" label-width="100px" size="small">
+                <el-form-item label="摆渡坑宽">
+                  <el-select v-model="transferForm.ferryPitWidth"  placeholder="请选择">
+                    <el-option label="4500" value="4500"></el-option>
+                    <el-option label="4800" value="4800"></el-option>
+                    <el-option label="5500" value="5500"></el-option>
+                  </el-select>
+                </el-form-item>
+                
+                <el-form-item label="关键特征">
+                  <el-select v-model="transferForm.ferryKeyFeature" placeholder="请选择">
+                    <el-option label="常规" value="常规"></el-option>
+                    <el-option label="鱼骨" value="鱼骨"></el-option>
+                    <el-option label="升降摆渡" value="升降摆渡"></el-option>
+                  </el-select>
+                </el-form-item>
+                
+                <el-form-item label="最大砖宽">
+                  <el-select v-model="transferForm.maxBrickWidth" placeholder="请选择">
+                    <el-option label="非液压升降摆渡" value="非液压升降摆渡"></el-option>
+                    <el-option label="900" value="900"></el-option>
+                    <el-option label="1200" value="1200"></el-option>
+                  </el-select>
+                </el-form-item>
+                
+                <el-form-item label="有无坑">
+                  <el-select v-model="transferForm.hasPit" placeholder="请选择">
+                    <el-option label="有坑" value="有坑"></el-option>
+                    <el-option label="无坑" value="无坑"></el-option>
+                  </el-select>
+                </el-form-item>
+              </el-form>
+            </el-collapse-item>
+            
+            <el-collapse-item title="运输车设备参数" name="transport">
+              <el-form ref="transportFormRef" :model="transportForm" label-width="100px" size="small">
+                <el-form-item label="摆渡坑宽">
+                  <el-select v-model="transportForm.pitWidth"  placeholder="请选择">
+                    <el-option label="4500" value="4500"></el-option>
+                    <el-option label="5500" value="5500"></el-option>
+                  </el-select>
+                </el-form-item>
+                
+                <el-form-item label="支架形式">
+                  <el-select v-model="transportForm.supportType" placeholder="请选择">
+                    <el-option label="常规" value="常规"></el-option>
+                    <el-option label="鱼骨" value="鱼骨"></el-option>
+                  </el-select>
+                </el-form-item>
+                
+                <el-form-item label="电力形式">
+                  <el-select v-model="transportForm.powerType" placeholder="请选择">
+                    <el-option label="交流" value="交流"></el-option>
+                    <el-option label="直流" value="直流"></el-option>
+                  </el-select>
+                </el-form-item>
+              </el-form>
+            </el-collapse-item>
+            
+            <el-collapse-item title="拍齐顶升设备参数" name="lift">
+              <el-form ref="liftFormRef" :model="liftForm" label-width="100px" size="small">    
+                <el-form-item label="最大砖厚度">
+                  <el-select v-model="liftForm.maxBrickThickness" placeholder="请选择">
+                    <el-option label="15" value="15"></el-option>
+                    <el-option label="20" value="20"></el-option>
+                    <el-option label="48" value="48"></el-option>
+                  </el-select>
+                </el-form-item>
+              </el-form>
+            </el-collapse-item>
+          </el-collapse>
 
           <div class="form-actions">
-            <el-button type="primary" @click="searchDevices">搜索设备</el-button>
-            <el-button @click="resetAllForms">重置所有</el-button>
+            <el-button type="primary" @click="searchDevices" class="btn-block">搜索设备</el-button>
+            <el-button @click="resetAllForms" class="btn-block">重置所有</el-button>
           </div>
 
           <!-- 搜索结果预览 -->
           <div v-if="showSearchResult" class="search-result-preview">
             <h4>搜索结果预览</h4>
-            <p>砖机: {{ totalCounts.brick }} 条 | 摆渡车: {{ totalCounts.transfer }} 条 | 运输车: {{ totalCounts.transport }} 条 | 拍齐顶升: {{ totalCounts.lift }} 条</p>
+            <p>砖机: {{ totalCounts.brick }} 条 | 摆渡车: {{ totalCounts.transfer }} 条</p>
+            <p>运输车: {{ totalCounts.transport }} 条 | 拍齐顶升: {{ totalCounts.lift }} 条</p>
             <p>请点击"下一步"查看完整结果并选择设备</p>
           </div>
         </div>
 
         <div class="step-actions">
-          <el-button type="primary" @click="nextStep" :disabled="!showSearchResult">下一步</el-button>
+          <el-button type="primary" @click="nextStep" :disabled="!showSearchResult" class="btn-block">下一步</el-button>
         </div>
       </div>
 
-      <!-- 步骤2：设备选择 -->
+      <!-- 步骤2：设备选择 - 重点优化表格显示 -->
       <div v-if="currentStep === 2" class="step-content">
         <h2>设备选择</h2>
         
@@ -182,260 +182,475 @@
         
         <!-- 设备列表内容 -->
         <div v-else>
-          <!-- 四个设备列表导航 -->
-          <el-tabs v-model="activeTab" type="card" class="sticky-tabs">
-            <el-tab-pane label="砖机" name="brick">
-              <div class="tab-content">
-                <el-table :data="brickDevices" border>
-                  <el-table-column label="数量">
-                    <template #default="scope">
+          <!-- 四个设备列表导航 - 移动端优化为可滚动标签 -->
+          <div class="scrollable-tabs">
+            <el-tabs v-model="activeTab" type="card" class="device-tabs">
+              <el-tab-pane label="砖机" name="brick"></el-tab-pane>
+              <el-tab-pane label="运输车" name="transport"></el-tab-pane>
+              <el-tab-pane label="摆渡车" name="transfer"></el-tab-pane>
+              <el-tab-pane label="拍齐顶升" name="lift"></el-tab-pane>
+            </el-tabs>
+          </div>
+
+          <!-- 表格内容 - 移动端使用卡片式布局 -->
+          <div class="tab-content">
+            <!-- 桌面端表格 -->
+            <div class="desktop-view">
+              <el-table v-if="activeTab === 'brick'" :data="brickDevices" border size="mini">
+                <el-table-column label="数量">
+                  <template #default="scope">
+                    <el-input-number
+                        v-model="scope.row.quantity"
+                        :min="1"
+                        size="small"
+                        :controls-position="'right'"
+                    ></el-input-number>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="materialCode" label="物料编码" width="100"></el-table-column>
+                <el-table-column prop="materialDescription" label="物料描述" width="200"></el-table-column>
+                <el-table-column prop="brickSpec" label="适用最大砖宽"></el-table-column>
+                <el-table-column prop="travelDistance" label="移砖行程(mm)"></el-table-column>
+                <el-table-column prop="style" label="样式"></el-table-column>
+                <el-table-column prop="workstationCount" label="工位数"></el-table-column>
+                <el-table-column prop="liftRatio" label="提升速比"></el-table-column>
+                <el-table-column prop="liftGearDiameter" label="提升齿轮直径(mm)"></el-table-column>
+                <el-table-column prop="driveRatio" label="水平驱动速比"></el-table-column>
+                <el-table-column prop="driveShaftDiameter" label="水平驱动轴径(mm)"></el-table-column>
+                <el-table-column prop="drivePulleyDiameter" label="水平驱动同步带轮直径(mm)"></el-table-column>
+                <el-table-column prop="drivenShaftDiameter" label="从动轴径(mm)"></el-table-column>
+                <el-table-column prop="suctionCupCount" label="吸盘数量"></el-table-column>
+                <el-table-column prop="suctionCupType" label="吸盘形式"></el-table-column>
+                <el-table-column prop="suctionCupSize" label="吸盘大小(mm)"></el-table-column>
+                <el-table-column prop="solenoidValveCount" label="电磁阀数量"></el-table-column>
+                <el-table-column prop="solenoidValveModel" label="电磁阀型号"></el-table-column>
+                <el-table-column prop="vacuumGeneratorCount" label="真空发生器数量"></el-table-column>
+                <el-table-column prop="vacuumGeneratorModel" label="真空发生器型号"></el-table-column>
+                <el-table-column prop="forkOpening" label="叉砖口内空(mm)"></el-table-column>
+                <el-table-column prop="notes" label="备注" width="300"></el-table-column>
+                <el-table-column prop="usedProjects" label="在用项目" width="200"></el-table-column>
+                <el-table-column label="操作">
+                  <template #default="scope">
+                    <el-button
+                        type="text"
+                        @click="selectDevice(scope.row, 'brick')"
+                    >
+                      选择
+                    </el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+
+              <el-table v-if="activeTab === 'transport'" :data="transportDevices" border size="mini">
+                <el-table-column label="数量">
+                  <template #default="scope">
+                    <el-input-number
+                        v-model="scope.row.quantity"
+                        :min="1"
+                        size="small"
+                        :controls-position="'right'"
+                    ></el-input-number>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="materialCode" label="物料编码" width="100"></el-table-column>
+                <el-table-column prop="materialDescription" label="物料描述" width="200"></el-table-column>
+                <el-table-column prop="pitWidth" label="坑宽(mm)"></el-table-column>
+                <el-table-column prop="brickCount600" label="600规格砖片数(片)"></el-table-column>
+                <el-table-column prop="brickCount600x1200" label="600X1200规格砖片数(片)"></el-table-column>
+                <el-table-column prop="vehicleLength" label="车身总长(mm)"></el-table-column>
+                <el-table-column prop="supportLength" label="托升支架长度(mm)"></el-table-column>
+                <el-table-column prop="supportWidth" label="托升支架宽度(mm)"></el-table-column>
+                <el-table-column prop="supportType" label="托升支架形式"></el-table-column>
+                <el-table-column prop="positioning" label="定位模式"></el-table-column>
+                <el-table-column prop="powerType" label="电力形式"></el-table-column>
+                <el-table-column prop="liftingMechanism" label="顶升结构"></el-table-column>
+                <el-table-column prop="liftingMotor" label="顶升电机"></el-table-column>
+                <el-table-column prop="travelMotor" label="行走电机"></el-table-column>
+                <el-table-column prop="reducerRatio" label="行走减速机速比"></el-table-column>
+                <el-table-column prop="hasControl" label="有电气控制"></el-table-column>
+                <el-table-column prop="notes" label="备注"></el-table-column>
+                <el-table-column prop="projects" label="使用项目"></el-table-column>
+                <el-table-column label="操作">
+                  <template #default="scope">
+                    <el-button
+                        type="text"
+                        @click="selectDevice(scope.row, 'transport')"
+                    >
+                      选择
+                    </el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+
+              <el-table v-if="activeTab === 'transfer'" :data="transferDevices" border size="mini">
+                <el-table-column label="数量">
+                  <template #default="scope">
+                    <el-input-number
+                        v-model="scope.row.quantity"
+                        :min="1"
+                        size="small"
+                        :controls-position="'right'"
+                    ></el-input-number>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="materialCode" label="物料编码" width="100"></el-table-column>
+                <el-table-column prop="materialDescription" label="物料描述" width="200"></el-table-column>
+                <el-table-column prop="ferryPitWidth" label="摆渡坑宽度(mm)"></el-table-column>
+                <el-table-column prop="ferryKeyFeature" label="摆渡车关键特征"></el-table-column>
+                <el-table-column prop="maxBrickWidth" label="使用最大砖宽度(mm)"></el-table-column>
+                <el-table-column prop="ferryLength" label="摆渡车长度(mm)"></el-table-column>
+                <el-table-column prop="trackWidth" label="轨道内宽(mm)"></el-table-column>
+                <el-table-column prop="hasPit" label="有无坑"></el-table-column>
+                <el-table-column prop="positioning" label="定位模式"></el-table-column>
+                <el-table-column prop="powerType" label="电力形式"></el-table-column>
+                <el-table-column prop="motor" label="行走电机"></el-table-column>
+                <el-table-column prop="hydraulicPower" label="液压功率(KW)"></el-table-column>
+                <el-table-column prop="reducerRatio" label="减速机速比"></el-table-column>
+                <el-table-column prop="hasControl" label="有电气控制"></el-table-column>
+                <el-table-column prop="notes" label="备注" width="200"></el-table-column>
+                <el-table-column prop="projects" label="使用项目" width="100"></el-table-column>
+                <el-table-column label="操作">
+                  <template #default="scope">
+                    <el-button
+                        type="text"
+                        @click="selectDevice(scope.row, 'transfer')"
+                    >
+                      选择
+                    </el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+
+              <el-table v-if="activeTab === 'lift'" :data="liftDevices" border size="mini">
+                <el-table-column label="数量">
+                  <template #default="scope">
+                    <el-input-number
+                        v-model="scope.row.quantity"
+                        :min="1"
+                        size="small"
+                        :controls-position="'right'"
+                    ></el-input-number>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="materialCode" label="物料编码" width="100"></el-table-column>
+                <el-table-column prop="materialDescription" label="物料描述" width="200"></el-table-column>
+                <el-table-column prop="brickWidthRange" label="适用砖宽度范围(mm)" width="100"></el-table-column>
+                <el-table-column prop="brickThickness" label="适用砖厚度(mm)"></el-table-column>
+                <el-table-column prop="frameWidth" label="安装适用线架宽度(mm)"></el-table-column>
+                <el-table-column prop="baseType" label="底架形式"></el-table-column>
+                <el-table-column prop="alignCylinder" label="拍齐气缸"></el-table-column>
+                <el-table-column prop="liftCylinder" label="顶升气缸"></el-table-column>
+                <el-table-column prop="plateLength" label="托砖板长度(mm)"></el-table-column>
+                <el-table-column prop="alignWheelCount" label="拍齐轮个数"></el-table-column>
+                <el-table-column prop="guideType" label="导向形式"></el-table-column>
+                <el-table-column prop="guideSlider" label="导向滑块"></el-table-column>
+                <el-table-column prop="rubberThickness" label="挡砖胶皮厚度(mm)"></el-table-column>
+                <el-table-column prop="notes" label="备注" width="200"></el-table-column>
+                <el-table-column prop="usedProjects" label="在用项目" width="200"></el-table-column>
+                <el-table-column label="操作">
+                  <template #default="scope">
+                    <el-button
+                        type="text"
+                        @click="selectDevice(scope.row, 'lift')"
+                    >
+                      选择
+                    </el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+
+            <!-- 移动端卡片布局 -->
+            <div class="mobile-view">
+              <!-- 砖机卡片列表 -->
+              <div v-if="activeTab === 'brick'" class="device-cards">
+                <div class="device-card" v-for="(device, index) in brickDevices" :key="index">
+                  <div class="card-header">
+                    <span class="material-code">{{ device.materialCode }}</span>
+                    <div class="quantity-selector">
+                      <span>数量:</span>
                       <el-input-number
-                          v-model="scope.row.quantity"
-                          :min="1"
-                          size="small"
-                          :controls-position="'right'"
+                        v-model="device.quantity"
+                        :min="1"
+                        controls-position="right"
+                        size="mini"
                       ></el-input-number>
-                    </template>
-                  </el-table-column>
-                  <el-table-column prop="materialCode" label="物料编码" width="100"></el-table-column>
-                  <el-table-column prop="materialDescription" label="物料描述" width="200"></el-table-column>
-                  <el-table-column prop="brickSpec" label="适用最大砖宽"></el-table-column>
-                  <el-table-column prop="travelDistance" label="移砖行程(mm)"></el-table-column>
-                  <el-table-column prop="style" label="样式"></el-table-column>
-                  <el-table-column prop="workstationCount" label="工位数"></el-table-column>
-                  <el-table-column prop="liftRatio" label="提升速比"></el-table-column>
-                  <el-table-column prop="liftGearDiameter" label="提升齿轮直径(mm)"></el-table-column>
-                  <el-table-column prop="driveRatio" label="水平驱动速比"></el-table-column>
-                  <el-table-column prop="driveShaftDiameter" label="水平驱动轴径(mm)"></el-table-column>
-                  <el-table-column prop="drivePulleyDiameter" label="水平驱动同步带轮直径(mm)"></el-table-column>
-                  <el-table-column prop="drivenShaftDiameter" label="从动轴径(mm)"></el-table-column>
-                  <el-table-column prop="suctionCupCount" label="吸盘数量"></el-table-column>
-                  <el-table-column prop="suctionCupType" label="吸盘形式"></el-table-column>
-                  <el-table-column prop="suctionCupSize" label="吸盘大小(mm)"></el-table-column>
-                  <el-table-column prop="solenoidValveCount" label="电磁阀数量"></el-table-column>
-                  <el-table-column prop="solenoidValveModel" label="电磁阀型号"></el-table-column>
-                  <el-table-column prop="vacuumGeneratorCount" label="真空发生器数量"></el-table-column>
-                  <el-table-column prop="vacuumGeneratorModel" label="真空发生器型号"></el-table-column>
-                  <el-table-column prop="forkOpening" label="叉砖口内空(mm)"></el-table-column>
-                  <el-table-column prop="notes" label="备注" width="300"></el-table-column>
-                  <el-table-column prop="usedProjects" label="在用项目" width="200"></el-table-column>
-                  <el-table-column label="操作">
-                    <template #default="scope">
-                      <el-button
-                          type="text"
-                          @click="selectDevice(scope.row, 'brick')"
-                      >
-                        选择
-                      </el-button>
-                    </template>
-                  </el-table-column>
-                </el-table>
-                <div class="pagination-container">
-                  <el-pagination
-                      v-model:current-page="pagination.brick.currentPage"
-                      v-model:page-size="pagination.brick.pageSize"
-                      :total="totalCounts.brick"
-                      :page-sizes="[10, 20, 50]"
-                      layout="total, sizes, prev, pager, next, jumper"
-                      @size-change="handlePageSizeChange('brick', $event)"
-                      @current-change="handleCurrentPageChange('brick', $event)"
-                  />
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <h4 class="card-title">{{ device.materialDescription }}</h4>
+                    <div class="card-attributes">
+                      <div class="attribute-row">
+                        <span class="attr-name">适用最大砖宽:</span>
+                        <span class="attr-value">{{ device.brickSpec }}</span>
+                      </div>
+                      <div class="attribute-row">
+                        <span class="attr-name">移砖行程:</span>
+                        <span class="attr-value">{{ device.travelDistance }}mm</span>
+                      </div>
+                      <div class="attribute-row">
+                        <span class="attr-name">样式:</span>
+                        <span class="attr-value">{{ device.style }}</span>
+                      </div>
+                      <div class="attribute-row">
+                        <span class="attr-name">工位数:</span>
+                        <span class="attr-value">{{ device.workstationCount }}</span>
+                      </div>
+                      <el-collapse>
+                        <el-collapse-item title="查看更多参数">
+                          <div class="attribute-row">
+                            <span class="attr-name">提升速比:</span>
+                            <span class="attr-value">{{ device.liftRatio }}</span>
+                          </div>
+                          <div class="attribute-row">
+                            <span class="attr-name">吸盘数量:</span>
+                            <span class="attr-value">{{ device.suctionCupCount }}</span>
+                          </div>
+                          <div class="attribute-row">
+                            <span class="attr-name">电磁阀数量:</span>
+                            <span class="attr-value">{{ device.solenoidValveCount }}</span>
+                          </div>
+                          <div class="attribute-row">
+                            <span class="attr-name">备注:</span>
+                            <span class="attr-value">{{ device.notes }}</span>
+                          </div>
+                        </el-collapse-item>
+                      </el-collapse>
+                    </div>
+                  </div>
+                  <div class="card-actions">
+                    <el-button 
+                      type="primary" 
+                      size="small" 
+                      @click="selectDevice(device, 'brick')"
+                      class="btn-block"
+                    >
+                      选择
+                    </el-button>
+                  </div>
                 </div>
               </div>
-            </el-tab-pane>
-            <el-tab-pane label="运输车" name="transport">
-              <div class="tab-content">
-                <el-table :data="transportDevices" border>
-                  <el-table-column label="数量">
-                    <template #default="scope">
+
+              <!-- 运输车卡片列表 -->
+              <div v-if="activeTab === 'transport'" class="device-cards">
+                <div class="device-card" v-for="(device, index) in transportDevices" :key="index">
+                  <div class="card-header">
+                    <span class="material-code">{{ device.materialCode }}</span>
+                    <div class="quantity-selector">
+                      <span>数量:</span>
                       <el-input-number
-                          v-model="scope.row.quantity"
-                          :min="1"
-                          size="small"
-                          :controls-position="'right'"
+                        v-model="device.quantity"
+                        :min="1"
+                        controls-position="right"
+                        size="mini"
                       ></el-input-number>
-                    </template>
-                  </el-table-column>
-                  <el-table-column prop="materialCode" label="物料编码" width="100"></el-table-column>
-                  <el-table-column prop="materialDescription" label="物料描述" width="200"></el-table-column>
-                  <el-table-column prop="pitWidth" label="坑宽(mm)"></el-table-column>
-                  <el-table-column prop="brickCount600" label="600规格砖片数(片)"></el-table-column>
-                  <el-table-column prop="brickCount600x1200" label="600X1200规格砖片数(片)"></el-table-column>
-                  <el-table-column prop="vehicleLength" label="车身总长(mm)"></el-table-column>
-                  <el-table-column prop="supportLength" label="托升支架长度(mm)"></el-table-column>
-                  <el-table-column prop="supportWidth" label="托升支架宽度(mm)"></el-table-column>
-                  <el-table-column prop="supportType" label="托升支架形式"></el-table-column>
-                  <el-table-column prop="positioning" label="定位模式"></el-table-column>
-                  <el-table-column prop="powerType" label="电力形式"></el-table-column>
-                  <el-table-column prop="liftingMechanism" label="顶升结构"></el-table-column>
-                  <el-table-column prop="liftingMotor" label="顶升电机"></el-table-column>
-                  <el-table-column prop="travelMotor" label="行走电机"></el-table-column>
-                  <el-table-column prop="reducerRatio" label="行走减速机速比"></el-table-column>
-                  <el-table-column prop="hasControl" label="有电气控制"></el-table-column>
-                  <el-table-column prop="notes" label="备注"></el-table-column>
-                  <el-table-column prop="projects" label="使用项目"></el-table-column>
-                  <el-table-column label="操作">
-                    <template #default="scope">
-                      <el-button
-                          type="text"
-                          @click="selectDevice(scope.row, 'transport')"
-                      >
-                        选择
-                      </el-button>
-                    </template>
-                  </el-table-column>
-                </el-table>
-                <div class="pagination-container">
-                  <el-pagination
-                      v-model:current-page="pagination.transport.currentPage"
-                      v-model:page-size="pagination.transport.pageSize"
-                      :total="totalCounts.transport"
-                      :page-sizes="[10, 20, 50]"
-                      layout="total, sizes, prev, pager, next, jumper"
-                      @size-change="handlePageSizeChange('transport', $event)"
-                      @current-change="handleCurrentPageChange('transport', $event)"
-                  />
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <h4 class="card-title">{{ device.materialDescription }}</h4>
+                    <div class="card-attributes">
+                      <div class="attribute-row">
+                        <span class="attr-name">坑宽:</span>
+                        <span class="attr-value">{{ device.pitWidth }}mm</span>
+                      </div>
+                      <div class="attribute-row">
+                        <span class="attr-name">支架形式:</span>
+                        <span class="attr-value">{{ device.supportType }}</span>
+                      </div>
+                      <div class="attribute-row">
+                        <span class="attr-name">电力形式:</span>
+                        <span class="attr-value">{{ device.powerType }}</span>
+                      </div>
+                      <el-collapse>
+                        <el-collapse-item title="查看更多参数">
+                          <div class="attribute-row">
+                            <span class="attr-name">600规格砖片数:</span>
+                            <span class="attr-value">{{ device.brickCount600 }}片</span>
+                          </div>
+                          <div class="attribute-row">
+                            <span class="attr-name">车身总长:</span>
+                            <span class="attr-value">{{ device.vehicleLength }}mm</span>
+                          </div>
+                          <div class="attribute-row">
+                            <span class="attr-name">使用项目:</span>
+                            <span class="attr-value">{{ device.projects }}</span>
+                          </div>
+                        </el-collapse-item>
+                      </el-collapse>
+                    </div>
+                  </div>
+                  <div class="card-actions">
+                    <el-button 
+                      type="primary" 
+                      size="small" 
+                      @click="selectDevice(device, 'transport')"
+                      class="btn-block"
+                    >
+                      选择
+                    </el-button>
+                  </div>
                 </div>
               </div>
-            </el-tab-pane>
-            <el-tab-pane label="摆渡车" name="transfer">
-              <div class="tab-content">
-                <el-table :data="transferDevices" border>
-                  <el-table-column label="数量">
-                    <template #default="scope">
+
+              <!-- 摆渡车卡片列表 -->
+              <div v-if="activeTab === 'transfer'" class="device-cards">
+                <div class="device-card" v-for="(device, index) in transferDevices" :key="index">
+                  <div class="card-header">
+                    <span class="material-code">{{ device.materialCode }}</span>
+                    <div class="quantity-selector">
+                      <span>数量:</span>
                       <el-input-number
-                          v-model="scope.row.quantity"
-                          :min="1"
-                          size="small"
-                          :controls-position="'right'"
+                        v-model="device.quantity"
+                        :min="1"
+                        controls-position="right"
+                        size="mini"
                       ></el-input-number>
-                    </template>
-                  </el-table-column>
-                  <el-table-column prop="materialCode" label="物料编码" width="100"></el-table-column>
-                  <el-table-column prop="materialDescription" label="物料描述" width="200"></el-table-column>
-                  <el-table-column prop="ferryPitWidth" label="摆渡坑宽度(mm)"></el-table-column>
-                  <el-table-column prop="ferryKeyFeature" label="摆渡车关键特征"></el-table-column>
-                  <el-table-column prop="maxBrickWidth" label="使用最大砖宽度(mm)"></el-table-column>
-                  <el-table-column prop="ferryLength" label="摆渡车长度(mm)"></el-table-column>
-                  <el-table-column prop="trackWidth" label="轨道内宽(mm)"></el-table-column>
-                  <el-table-column prop="hasPit" label="有无坑"></el-table-column>
-                  <el-table-column prop="positioning" label="定位模式"></el-table-column>
-                  <el-table-column prop="powerType" label="电力形式"></el-table-column>
-                  <el-table-column prop="motor" label="行走电机"></el-table-column>
-                  <el-table-column prop="hydraulicPower" label="液压功率(KW)"></el-table-column>
-                  <el-table-column prop="reducerRatio" label="减速机速比"></el-table-column>
-                  <el-table-column prop="hasControl" label="有电气控制"></el-table-column>
-                  <el-table-column prop="notes" label="备注" width="200"></el-table-column>
-                  <el-table-column prop="projects" label="使用项目" width="100"></el-table-column>
-                  <el-table-column label="操作">
-                    <template #default="scope">
-                      <el-button
-                          type="text"
-                          @click="selectDevice(scope.row, 'transfer')"
-                      >
-                        选择
-                      </el-button>
-                    </template>
-                  </el-table-column>
-                </el-table>
-                <div class="pagination-container">
-                  <el-pagination
-                      v-model:current-page="pagination.transfer.currentPage"
-                      v-model:page-size="pagination.transfer.pageSize"
-                      :total="totalCounts.transfer"
-                      :page-sizes="[10, 20, 50]"
-                      layout="total, sizes, prev, pager, next, jumper"
-                      @size-change="handlePageSizeChange('transfer', $event)"
-                      @current-change="handleCurrentPageChange('transfer', $event)"
-                  />
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <h4 class="card-title">{{ device.materialDescription }}</h4>
+                    <div class="card-attributes">
+                      <div class="attribute-row">
+                        <span class="attr-name">摆渡坑宽度:</span>
+                        <span class="attr-value">{{ device.ferryPitWidth }}mm</span>
+                      </div>
+                      <div class="attribute-row">
+                        <span class="attr-name">关键特征:</span>
+                        <span class="attr-value">{{ device.ferryKeyFeature }}</span>
+                      </div>
+                      <div class="attribute-row">
+                        <span class="attr-name">有无坑:</span>
+                        <span class="attr-value">{{ device.hasPit }}</span>
+                      </div>
+                      <el-collapse>
+                        <el-collapse-item title="查看更多参数">
+                          <div class="attribute-row">
+                            <span class="attr-name">最大砖宽度:</span>
+                            <span class="attr-value">{{ device.maxBrickWidth }}mm</span>
+                          </div>
+                          <div class="attribute-row">
+                            <span class="attr-name">轨道内宽:</span>
+                            <span class="attr-value">{{ device.trackWidth }}mm</span>
+                          </div>
+                        </el-collapse-item>
+                      </el-collapse>
+                    </div>
+                  </div>
+                  <div class="card-actions">
+                    <el-button 
+                      type="primary" 
+                      size="small" 
+                      @click="selectDevice(device, 'transfer')"
+                      class="btn-block"
+                    >
+                      选择
+                    </el-button>
+                  </div>
                 </div>
               </div>
-            </el-tab-pane>
-            <el-tab-pane label="拍齐顶升" name="lift">
-              <div class="tab-content">
-                <el-table :data="liftDevices" border>
-                  <el-table-column label="数量">
-                    <template #default="scope">
+
+              <!-- 拍齐顶升卡片列表 -->
+              <div v-if="activeTab === 'lift'" class="device-cards">
+                <div class="device-card" v-for="(device, index) in liftDevices" :key="index">
+                  <div class="card-header">
+                    <span class="material-code">{{ device.materialCode }}</span>
+                    <div class="quantity-selector">
+                      <span>数量:</span>
                       <el-input-number
-                          v-model="scope.row.quantity"
-                          :min="1"
-                          size="small"
-                          :controls-position="'right'"
+                        v-model="device.quantity"
+                        :min="1"
+                        controls-position="right"
+                        size="mini"
                       ></el-input-number>
-                    </template>
-                  </el-table-column>
-                  <el-table-column prop="materialCode" label="物料编码" width="100"></el-table-column>
-                  <el-table-column prop="materialDescription" label="物料描述" width="200"></el-table-column>
-                  <el-table-column prop="brickWidthRange" label="适用砖宽度范围(mm)" width="100"></el-table-column>
-                  <el-table-column prop="brickThickness" label="适用砖厚度(mm)"></el-table-column>
-                  <el-table-column prop="frameWidth" label="安装适用线架宽度(mm)"></el-table-column>
-                  <el-table-column prop="baseType" label="底架形式"></el-table-column>
-                  <el-table-column prop="alignCylinder" label="拍齐气缸"></el-table-column>
-                  <el-table-column prop="liftCylinder" label="顶升气缸"></el-table-column>
-                  <el-table-column prop="plateLength" label="托砖板长度(mm)"></el-table-column>
-                  <el-table-column prop="alignWheelCount" label="拍齐轮个数"></el-table-column>
-                  <el-table-column prop="guideType" label="导向形式"></el-table-column>
-                  <el-table-column prop="guideSlider" label="导向滑块"></el-table-column>
-                  <el-table-column prop="rubberThickness" label="挡砖胶皮厚度(mm)"></el-table-column>
-                  <el-table-column prop="notes" label="备注" width="200"></el-table-column>
-                  <el-table-column prop="usedProjects" label="在用项目" width="200"></el-table-column>
-                  <el-table-column label="操作">
-                    <template #default="scope">
-                      <el-button
-                          type="text"
-                          @click="selectDevice(scope.row, 'lift')"
-                      >
-                        选择
-                      </el-button>
-                    </template>
-                  </el-table-column>
-                </el-table>
-                <div class="pagination-container">
-                  <el-pagination
-                      v-model:current-page="pagination.lift.currentPage"
-                      v-model:page-size="pagination.lift.pageSize"
-                      :total="totalCounts.lift"
-                      :page-sizes="[10, 20, 50]"
-                      layout="total, sizes, prev, pager, next, jumper"
-                      @size-change="handlePageSizeChange('lift', $event)"
-                      @current-change="handleCurrentPageChange('lift', $event)"
-                  />
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <h4 class="card-title">{{ device.materialDescription }}</h4>
+                    <div class="card-attributes">
+                      <div class="attribute-row">
+                        <span class="attr-name">适用砖宽范围:</span>
+                        <span class="attr-value">{{ device.brickWidthRange }}mm</span>
+                      </div>
+                      <div class="attribute-row">
+                        <span class="attr-name">适用砖厚度:</span>
+                        <span class="attr-value">{{ device.brickThickness }}mm</span>
+                      </div>
+                      <div class="attribute-row">
+                        <span class="attr-name">底架形式:</span>
+                        <span class="attr-value">{{ device.baseType }}</span>
+                      </div>
+                      <el-collapse>
+                        <el-collapse-item title="查看更多参数">
+                          <div class="attribute-row">
+                            <span class="attr-name">托砖板长度:</span>
+                            <span class="attr-value">{{ device.plateLength }}mm</span>
+                          </div>
+                          <div class="attribute-row">
+                            <span class="attr-name">拍齐轮个数:</span>
+                            <span class="attr-value">{{ device.alignWheelCount }}</span>
+                          </div>
+                        </el-collapse-item>
+                      </el-collapse>
+                    </div>
+                  </div>
+                  <div class="card-actions">
+                    <el-button 
+                      type="primary" 
+                      size="small" 
+                      @click="selectDevice(device, 'lift')"
+                      class="btn-block"
+                    >
+                      选择
+                    </el-button>
+                  </div>
                 </div>
               </div>
-            </el-tab-pane>
-          </el-tabs>
+            </div>
+
+            <!-- 分页 -->
+            <div class="pagination-container">
+              <el-pagination
+                  v-model:current-page="pagination[activeTab].currentPage"
+                  v-model:page-size="pagination[activeTab].pageSize"
+                  :total="totalCounts[activeTab]"
+                  :page-sizes="[5, 10, 20]"
+                  layout="total, prev, pager, next"
+                  @size-change="handlePageSizeChange(activeTab, $event)"
+                  @current-change="handleCurrentPageChange(activeTab, $event)"
+              />
+            </div>
+          </div>
 
           <!-- 已选设备预览（购物车） -->
           <div class="selected-preview">
             <h4>已选设备 ({{ selectedDevices.length }})</h4>
-            <el-table :data="selectedDevices.slice(0, 3)" border size="mini">
-              <el-table-column type="index" label="序号" width="60"></el-table-column>
-              <el-table-column prop="type" label="类型"></el-table-column>
-              <el-table-column prop="materialCode" label="编码"></el-table-column>
-              <el-table-column prop="name" label="物料描述" min-width="180"></el-table-column>
-              <el-table-column prop="quantity" label="数量"></el-table-column>
-              <el-table-column label="操作">
-                <template #default="scope">
-                  <el-button
-                      type="text"
-                      @click="removeDeviceFromPreview(scope.$index)"
-                      style="color: #f56c6c"
-                      size="small"
-                  >
-                    移除
-                  </el-button>
-                </template>
-              </el-table-column>
-            </el-table>
-            <div v-if="selectedDevices.length > 3" class="preview-more">
-              还有 {{ selectedDevices.length - 3 }} 项...
+            <div class="selected-list">
+              <div class="selected-item" v-for="(item, index) in selectedDevices" :key="index">
+                <div class="item-info">
+                  <div class="item-type">{{ item.type }}</div>
+                  <div class="item-code">{{ item.materialCode }}</div>
+                  <div class="item-name">{{ item.name }}</div>
+                  <div class="item-quantity">数量: {{ item.quantity }}</div>
+                </div>
+                <el-button
+                  type="text"
+                  @click="removeDeviceFromPreview(index)"
+                  class="remove-btn"
+                  size="small"
+                >
+                  <i class="el-icon-delete"></i>
+                </el-button>
+              </div>
+            </div>
+            <div v-if="selectedDevices.length === 0" class="empty-selected">
+              暂无选中设备
             </div>
           </div>
         </div>
 
         <div class="step-actions">
-          <el-button @click="prevStep">上一步</el-button>
-          <el-button type="primary" @click="nextStep" :disabled="selectedDevices.length === 0">下一步</el-button>
+          <el-button @click="prevStep" class="btn-block btn-prev">上一步</el-button>
+          <el-button type="primary" @click="nextStep" :disabled="selectedDevices.length === 0" class="btn-block btn-next">下一步</el-button>
         </div>
       </div>
 
@@ -444,23 +659,53 @@
         <h2>选购记录</h2>
         
         <div class="selected-devices">
-          <el-table :data="currentSelectedDevices" border>
-            <el-table-column prop="type" label="设备类型"></el-table-column>
-            <el-table-column prop="quantity" label="数量"></el-table-column>
-            <el-table-column prop="materialCode" label="物料编码"></el-table-column>
-            <el-table-column prop="name" label="物料描述"></el-table-column>
-            <el-table-column label="操作">
-              <template #default="scope">
+          <!-- 桌面端表格 -->
+          <div class="desktop-view">
+            <el-table :data="currentSelectedDevices" border size="mini">
+              <el-table-column prop="type" label="设备类型"></el-table-column>
+              <el-table-column prop="quantity" label="数量"></el-table-column>
+              <el-table-column prop="materialCode" label="物料编码"></el-table-column>
+              <el-table-column prop="name" label="物料描述"></el-table-column>
+              <el-table-column label="操作">
+                <template #default="scope">
+                  <el-button
+                      type="text"
+                      @click="removeDevice(scope.$index)"
+                      style="color: #f56c6c"
+                  >
+                    移除
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+          
+          <!-- 移动端列表 -->
+          <div class="mobile-view">
+            <div class="selected-record" v-for="(item, index) in currentSelectedDevices" :key="index">
+              <div class="record-header">
+                <span class="record-type">{{ item.type }}</span>
+                <span class="record-quantity">数量: {{ item.quantity }}</span>
+              </div>
+              <div class="record-body">
+                <div class="record-code">{{ item.materialCode }}</div>
+                <div class="record-name">{{ item.name }}</div>
+              </div>
+              <div class="record-actions">
                 <el-button
-                    type="text"
-                    @click="removeDevice(scope.$index)"
-                    style="color: #f56c6c"
+                  type="text"
+                  @click="removeDevice(index)"
+                  style="color: #f56c6c"
+                  size="small"
                 >
                   移除
                 </el-button>
-              </template>
-            </el-table-column>
-          </el-table>
+              </div>
+            </div>
+            <div v-if="currentSelectedDevices.length === 0" class="empty-selected">
+              暂无选购记录
+            </div>
+          </div>
           
           <!-- 分页 -->
           <div class="pagination-container" v-if="selectedDevices.length > 0">
@@ -469,7 +714,7 @@
                 v-model:page-size="selectedPagination.pageSize"
                 :total="selectedDevices.length"
                 :page-sizes="[5, 10, 20]"
-                layout="total, sizes, prev, pager, next, jumper"
+                layout="total, prev, pager, next"
                 @size-change="handleSelectedPageSizeChange"
                 @current-change="handleSelectedCurrentPageChange"
             />
@@ -477,16 +722,18 @@
         </div>
 
         <div class="step-actions">
-          <el-button @click="prevStep">上一步</el-button>
-          <el-button 
-            v-loading.fullscreen.lock="fullscreenLoading" 
-            @click="exportSelected" 
-            class="export-btn" 
-            v-if="selectedDevices.length > 0"
-          >
-            导出选购记录
-          </el-button>
-          <el-button type="success" @click="finishProcess">完成</el-button>
+          <el-button @click="prevStep" class="btn-block btn-prev">上一步</el-button>
+          <div class="btn-group">
+            <el-button 
+              v-loading.fullscreen.lock="fullscreenLoading" 
+              @click="exportSelected" 
+              class="export-btn btn-block" 
+              v-if="selectedDevices.length > 0"
+            >
+              导出选购记录
+            </el-button>
+            <el-button type="success" @click="finishProcess" class="btn-block btn-finish">完成</el-button>
+          </div>
         </div>
       </div>
     </div>
@@ -561,7 +808,7 @@ const pagination = reactive({
   lift: { currentPage: 1, pageSize: 10 }
 });
 
-// 总数量计数（关键修复：使用独立的总数计数，而不是从当前页数据计算）
+// 总数量计数
 const totalCounts = reactive({
   brick: 0,
   transport: 0,
@@ -670,7 +917,7 @@ const reloadStep2Data = async () => {
   }
 };
 
-// 搜索所有设备 - 简化逻辑，不验证参数完整性
+// 搜索所有设备
 const searchDevices = async () => {
   try {
     fullscreenLoading.value = true;
@@ -776,12 +1023,11 @@ const calculateBrickParams = () => {
   };
 };
 
-// 应用拍齐顶升筛选条件（对应WPF版本的逻辑）
+// 应用拍齐顶升筛选条件
 const applyLiftFilters = (lifts) => {
   let filtered = [...lifts];
   
   // 1. 物料编码筛选
-  // （当前需求中没有提供物料编码输入，可根据实际情况添加）
   
   // 2. 适用最大砖厚度筛选（精确匹配）
   if (!stringNullOrEmpty(liftForm.maxBrickThickness)) {
@@ -900,7 +1146,7 @@ const fetchDevicesByType = async (type) => {
       quantity: 1 
     }));
     
-    // 关键修复：使用API返回的总记录数，而不是筛选后的当前页数量
+    // 更新总记录数
     totalCounts[type] = response.total || 0;
     
     console.log(`加载${type}设备成功: 当前页${filteredData.length}条，共${response.total || 0}条`);
@@ -909,7 +1155,7 @@ const fetchDevicesByType = async (type) => {
   }
 };
 
-// 应用运输车筛选条件（对应WPF版本的逻辑）
+// 应用运输车筛选条件
 const applyTransportFilters = (transports, brickCount3, brickCount5) => {
   let filtered = [...transports];
   
@@ -930,7 +1176,7 @@ const applyTransportFilters = (transports, brickCount3, brickCount5) => {
     );
   }
   
-  // 应用特殊条件筛选（对应WPF中的逻辑）
+  // 应用特殊条件筛选
   if (transportForm.pitWidth) {
     // 转换为数字进行比较
     const pitWidth = parseInt(transportForm.pitWidth);
@@ -1189,13 +1435,67 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 原有样式保持不变 */
+/* 基础样式 */
+.device-search-page {
+  padding: 10px;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+h2 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: #333;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+h3 {
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: #444;
+}
+
+h4 {
+  font-size: 14px;
+  margin-bottom: 10px;
+  color: #555;
+}
+
+/* 响应式断点设置 */
+@media (max-width: 768px) {
+  .desktop-view {
+    display: none !important;
+  }
+  .mobile-view {
+    display: block !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .desktop-view {
+    display: block !important;
+  }
+  .mobile-view {
+    display: none !important;
+  }
+  .device-search-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+}
+
+/* 步骤指示器 */
 .steps-indicator {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 20px 0;
-  padding: 0 20px;
+  margin: 15px 0;
+  padding: 0 10px;
+  flex-wrap: nowrap;
+  overflow: hidden;
 }
 
 .step-item {
@@ -1204,32 +1504,36 @@ onMounted(() => {
   align-items: center;
   position: relative;
   z-index: 1;
-  width: 120px;
+  flex: 1;
+  min-width: 60px;
 }
 
 .step-number {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background-color: #e9e9e9;
   color: #666;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
   font-weight: bold;
+  font-size: 14px;
 }
 
 .step-name {
-  font-size: 14px;
+  font-size: 12px;
   color: #666;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .step-line {
   flex: 1;
   height: 2px;
   background-color: #e9e9e9;
-  margin: 0 10px;
+  margin: 0 5px;
 }
 
 .step-item.active .step-number {
@@ -1251,102 +1555,353 @@ onMounted(() => {
   background-color: #67c23a;
 }
 
+/* 步骤内容区域 */
 .steps-content {
-  padding: 20px;
+  padding: 15px;
   background-color: #fff;
-  border-radius: 4px;
-  min-height: 400px;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .step-content {
   animation: fadeIn 0.3s;
 }
 
+/* 表单区域 */
 .form-section {
-  margin-bottom: 20px;
-  padding: 15px;
+  margin-bottom: 15px;
+  padding: 12px;
   border: 1px solid #e4e7ed;
   border-radius: 4px;
 }
 
+.scrollable-table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-collapse {
+  margin-top: 15px;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* 按钮样式 */
 .form-actions {
-  margin-top: 20px;
+  margin-top: 15px;
   display: flex;
-  justify-content: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .step-actions {
-  margin-top: 30px;
+  margin-top: 20px;
   display: flex;
-  justify-content: center;
-  gap: 15px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
+.btn-block {
+  width: 100%;
+  padding: 10px 0;
+}
+
+@media (min-width: 769px) {
+  .form-actions {
+    justify-content: center;
+  }
+  .step-actions {
+    justify-content: center;
+  }
+  .btn-block {
+    width: auto;
+    padding: 10px 20px;
+  }
+  .btn-group {
+    display: flex;
+    gap: 10px;
+  }
+}
+
+/* 搜索结果预览 */
 .search-result-preview {
-  margin-top: 20px;
-  padding: 15px;
+  margin-top: 15px;
+  padding: 12px;
   background-color: #f5f7fa;
   border-radius: 4px;
   text-align: center;
+  font-size: 14px;
 }
 
-.devices-list {
-  margin-top: 15px;
+.search-result-preview p {
+  margin: 5px 0;
 }
 
+/* 标签页样式 */
+.scrollable-tabs {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 15px;
+}
+
+.device-tabs {
+  width: max-content;
+  min-width: 100%;
+}
+
+.tab-content {
+  margin-top: 10px;
+}
+
+/* 分页样式 */
 .pagination-container {
   margin-top: 15px;
   text-align: right;
+  padding: 10px 0;
 }
 
+.el-pagination {
+  font-size: 12px;
+}
+
+/* 已选设备预览 */
 .selected-preview {
-  margin-top: 20px;
-  padding: 15px;
+  margin-top: 15px;
+  padding: 12px;
   border: 1px solid #e4e7ed;
   border-radius: 4px;
 }
 
-.preview-more {
-  text-align: center;
+.selected-list {
   margin-top: 10px;
-  color: #666;
+  max-height: 200px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
+.selected-item {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.selected-item:last-child {
+  border-bottom: none;
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-type {
+  font-size: 12px;
+  color: #888;
+}
+
+.item-code {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.item-name {
+  font-size: 12px;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-quantity {
+  font-size: 12px;
+  color: #409eff;
+}
+
+.remove-btn {
+  color: #f56c6c !important;
+  padding: 5px;
+}
+
+.empty-selected {
+  text-align: center;
+  padding: 15px;
+  color: #999;
+  font-size: 14px;
+}
+
+/* 移动端设备卡片样式 */
+.device-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.device-card {
+  border: 1px solid #e4e7ed;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background-color: #f5f7fa;
+  border-bottom: 1px solid #e4e7ed;
+}
+
+.material-code {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.quantity-selector {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+}
+
+.card-body {
+  padding: 12px;
+}
+
+.card-title {
+  font-size: 15px;
+  margin-bottom: 10px;
+  color: #333;
+  line-height: 1.4;
+}
+
+.card-attributes {
+  font-size: 13px;
+}
+
+.attribute-row {
+  display: flex;
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.attr-name {
+  flex: 0 0 100px;
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attr-value {
+  flex: 1;
+  color: #333;
+  word-break: break-word;
+}
+
+.card-actions {
+  padding: 10px 12px;
+  border-top: 1px solid #e4e7ed;
+}
+
+/* 选购记录样式 */
+.selected-devices {
+  margin-top: 15px;
+}
+
+.selected-record {
+  border: 1px solid #e4e7ed;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.record-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background-color: #f5f7fa;
+  border-bottom: 1px solid #e4e7ed;
+  font-size: 13px;
+}
+
+.record-type {
+  font-weight: 500;
+}
+
+.record-quantity {
+  color: #409eff;
+}
+
+.record-body {
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.record-code {
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.record-name {
+  color: #666;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.record-actions {
+  padding: 8px 12px;
+  border-top: 1px solid #e4e7ed;
+  text-align: right;
+}
+
+/* 加载和空状态 */
 .loading-container {
-  height: 400px;
+  height: 300px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .empty-state {
-  height: 400px;
+  height: 300px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.export-btn {
-  margin-left: 10px;
-}
-
+/* 动画 */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* 标签页内容样式 */
-.tab-content {
-  margin-top: 15px;
+/* 按钮组样式 */
+.btn-prev {
+  background-color: #f5f7fa;
+  color: #666;
+  border-color: #e4e7ed;
 }
 
-.sticky-tabs {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background-color: #fff;
-  padding-top: 10px;
+.btn-next {
+  background-color: #409eff;
+  color: white;
+  border-color: #409eff;
+}
+
+.btn-finish {
+  background-color: #67c23a;
+  color: white;
+  border-color: #67c23a;
+}
+
+.export-btn {
+  background-color: #faad14;
+  color: white;
+  border-color: #faad14;
 }
 </style>
-    
