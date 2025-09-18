@@ -139,9 +139,15 @@
 
     <el-table v-loading="loading" :data="liftList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+        <template #default="scope">
+          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['device:lift:edit']">修改</el-button>
+          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['device:lift:remove']">删除</el-button>
+        </template>
+      </el-table-column>
       <el-table-column label="物料编码" align="center" prop="materialCode" />
       <el-table-column label="物料描述" align="center" prop="materialDescription" width="200"/>
-      <el-table-column label="适用砖宽度范围(mm)" align="center" prop="brickWidthRange" />
+      <el-table-column label="砖宽范围(mm)" align="center" prop="brickWidthRange" />
       <el-table-column label="适用砖厚度(mm)" align="center" prop="brickThickness" />
       <el-table-column label="安装适用线架宽度(mm)" align="center" prop="frameWidth" />
       <el-table-column label="底架形式" align="center" prop="baseType" />
@@ -154,12 +160,7 @@
       <el-table-column label="挡砖胶皮厚度(mm)" align="center" prop="rubberThickness" />
       <el-table-column label="备注" align="center" prop="notes" width="200"/>
       <el-table-column label="在用项目" align="center" prop="usedProjects" width="200"/>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-        <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['device:lift:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['device:lift:remove']">删除</el-button>
-        </template>
-      </el-table-column>
+      
     </el-table>
     
     <pagination
@@ -179,13 +180,13 @@
         <el-form-item label="物料描述" prop="materialDescription">
           <el-input v-model="form.materialDescription" placeholder="请输入物料描述" />
         </el-form-item>
-        <el-form-item label="适用砖宽度范围(mm)" prop="brickWidthRange">
+        <el-form-item label="砖宽范围" prop="brickWidthRange">
           <el-input v-model="form.brickWidthRange" placeholder="请输入适用砖宽度范围(mm)" />
         </el-form-item>
-        <el-form-item label="适用砖厚度(mm)" prop="brickThickness">
+        <el-form-item label="砖厚度" prop="brickThickness">
           <el-input v-model="form.brickThickness" placeholder="请输入适用砖厚度(mm)" />
         </el-form-item>
-        <el-form-item label="安装适用线架宽度(mm)" prop="frameWidth">
+        <el-form-item label="线架宽度" prop="frameWidth">
           <el-input v-model="form.frameWidth" placeholder="请输入安装适用线架宽度(mm)" />
         </el-form-item>
         <el-form-item label="拍齐气缸" prop="alignCylinder">
@@ -194,16 +195,16 @@
         <el-form-item label="顶升气缸" prop="liftCylinder">
           <el-input v-model="form.liftCylinder" placeholder="请输入顶升气缸" />
         </el-form-item>
-        <el-form-item label="托砖板长度(mm)" prop="plateLength">
+        <el-form-item label="托砖板长" prop="plateLength">
           <el-input v-model="form.plateLength" placeholder="请输入托砖板长度(mm)" />
         </el-form-item>
-        <el-form-item label="拍齐轮个数" prop="alignWheelCount">
+        <el-form-item label="拍齐轮数" prop="alignWheelCount">
           <el-input v-model="form.alignWheelCount" placeholder="请输入拍齐轮个数" />
         </el-form-item>
         <el-form-item label="导向滑块" prop="guideSlider">
           <el-input v-model="form.guideSlider" placeholder="请输入导向滑块" />
         </el-form-item>
-        <el-form-item label="挡砖胶皮厚度(mm)" prop="rubberThickness">
+        <el-form-item label="挡砖胶皮厚度" prop="rubberThickness">
           <el-input v-model="form.rubberThickness" placeholder="请输入挡砖胶皮厚度(mm)" />
         </el-form-item>
         <el-form-item label="备注" prop="notes">

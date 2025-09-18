@@ -164,6 +164,12 @@
 
     <el-table v-loading="loading" :data="transportList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+        <template #default="scope">
+          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['device:transport:edit']">修改</el-button>
+          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['device:transport:remove']">删除</el-button>
+        </template>
+      </el-table-column>
       <el-table-column label="物料编码" align="center" prop="materialCode" />
       <el-table-column label="物料描述" align="center" prop="materialDescription" width="200"/>
       <el-table-column label="坑宽(mm)" align="center" prop="pitWidth" />
@@ -182,12 +188,7 @@
       <el-table-column label="有电气控制" align="center" prop="hasControl" />
       <el-table-column label="备注" align="center" prop="notes" />
       <el-table-column label="使用项目" align="center" prop="projects" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-        <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['device:transport:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['device:transport:remove']">删除</el-button>
-        </template>
-      </el-table-column>
+      
     </el-table>
     
     <pagination
@@ -210,19 +211,19 @@
         <el-form-item label="坑宽(mm)" prop="pitWidth">
           <el-input v-model="form.pitWidth" placeholder="请输入坑宽(mm)" />
         </el-form-item>
-        <el-form-item label="600规格砖片数(片)" prop="brickCount600">
+        <el-form-item label="600砖片数" prop="brickCount600">
           <el-input v-model="form.brickCount600" placeholder="请输入600规格砖片数(片)" />
         </el-form-item>
-        <el-form-item label="600X1200规格砖片数(片)" prop="brickCount600x1200">
+        <el-form-item label="600X1200砖片数" prop="brickCount600x1200">
           <el-input v-model="form.brickCount600x1200" placeholder="请输入600X1200规格砖片数(片)" />
         </el-form-item>
-        <el-form-item label="车身总长(mm)" prop="vehicleLength">
+        <el-form-item label="车身总长" prop="vehicleLength">
           <el-input v-model="form.vehicleLength" placeholder="请输入车身总长(mm)" />
         </el-form-item>
-        <el-form-item label="托升支架长度(mm)" prop="supportLength">
+        <el-form-item label="托升支架长度" prop="supportLength">
           <el-input v-model="form.supportLength" placeholder="请输入托升支架长度(mm)" />
         </el-form-item>
-        <el-form-item label="托升支架宽度(mm)" prop="supportWidth">
+        <el-form-item label="托升支架宽度" prop="supportWidth">
           <el-input v-model="form.supportWidth" placeholder="请输入托升支架宽度(mm)" />
         </el-form-item>
         <el-form-item label="定位模式" prop="positioning">

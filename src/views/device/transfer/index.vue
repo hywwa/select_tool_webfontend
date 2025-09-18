@@ -163,6 +163,12 @@
 
     <el-table v-loading="loading" :data="transferList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
+       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+        <template #default="scope">
+          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['device:transfer:edit']">修改</el-button>
+          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['device:transfer:remove']">删除</el-button>
+        </template>
+      </el-table-column>
       <el-table-column label="物料编码" align="center" prop="materialCode" />
       <el-table-column label="物料描述" align="center" prop="materialDescription" width="200"/>
       <el-table-column label="摆渡坑宽度(mm)" align="center" prop="ferryPitWidth" />
@@ -179,12 +185,7 @@
       <el-table-column label="有电气控制" align="center" prop="hasControl" />
       <el-table-column label="备注" align="center" prop="notes" width="200"/>
       <el-table-column label="使用项目" align="center" prop="projects" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-        <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['device:transfer:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['device:transfer:remove']">删除</el-button>
-        </template>
-      </el-table-column>
+     
     </el-table>
     
     <pagination
@@ -204,19 +205,19 @@
         <el-form-item label="物料描述" prop="materialDescription">
           <el-input v-model="form.materialDescription" placeholder="请输入物料描述" />
         </el-form-item>
-        <el-form-item label="摆渡坑宽度(mm)" prop="ferryPitWidth">
+        <el-form-item label="摆渡坑宽" prop="ferryPitWidth">
           <el-input v-model="form.ferryPitWidth" placeholder="请输入摆渡坑宽度(mm)" />
         </el-form-item>
-        <el-form-item label="摆渡车关键特征" prop="ferryKeyFeature">
+        <el-form-item label="关键特征" prop="ferryKeyFeature">
           <el-input v-model="form.ferryKeyFeature" placeholder="请输入摆渡车关键特征" />
         </el-form-item>
-        <el-form-item label="使用最大砖宽度(mm)" prop="maxBrickWidth">
+        <el-form-item label="最大砖宽" prop="maxBrickWidth">
           <el-input v-model="form.maxBrickWidth" placeholder="请输入使用最大砖宽度(mm)" />
         </el-form-item>
-        <el-form-item label="摆渡车长度(mm)" prop="ferryLength">
+        <el-form-item label="摆渡车长" prop="ferryLength">
           <el-input v-model="form.ferryLength" placeholder="请输入摆渡车长度(mm)" />
         </el-form-item>
-        <el-form-item label="轨道内宽(mm)" prop="trackWidth">
+        <el-form-item label="轨道内宽" prop="trackWidth">
           <el-input v-model="form.trackWidth" placeholder="请输入轨道内宽(mm)" />
         </el-form-item>
         <el-form-item label="定位模式" prop="positioning">
@@ -225,7 +226,7 @@
         <el-form-item label="行走电机" prop="motor">
           <el-input v-model="form.motor" placeholder="请输入行走电机" />
         </el-form-item>
-        <el-form-item label="液压功率(KW)" prop="hydraulicPower">
+        <el-form-item label="液压功率" prop="hydraulicPower">
           <el-input v-model="form.hydraulicPower" placeholder="请输入液压功率(KW)" />
         </el-form-item>
         <el-form-item label="减速机速比" prop="reducerRatio">

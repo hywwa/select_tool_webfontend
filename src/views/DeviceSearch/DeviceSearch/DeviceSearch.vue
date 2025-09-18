@@ -72,9 +72,11 @@
             </el-form>
           </div>
 
-          <!-- 其他设备参数区域 - 折叠面板优化移动端空间 -->
-          <el-collapse class="mobile-collapse">
-            <el-collapse-item title="摆渡车设备参数" name="transfer">
+         <!-- 其他设备参数区域 - 移除折叠面板，直接展示所有内容 -->
+          <div class="device-params-container">
+            <!-- 摆渡车设备参数 -->
+            <div class="form-section">
+              <h3>摆渡车设备参数</h3>
               <el-form ref="transferFormRef" :model="transferForm" label-width="100px" size="small">
                 <el-form-item label="摆渡坑宽">
                   <el-select v-model="transferForm.ferryPitWidth"  placeholder="请选择">
@@ -107,9 +109,11 @@
                   </el-select>
                 </el-form-item>
               </el-form>
-            </el-collapse-item>
+            </div>
             
-            <el-collapse-item title="运输车设备参数" name="transport">
+            <!-- 运输车设备参数 -->
+            <div class="form-section">
+              <h3>运输车设备参数</h3>
               <el-form ref="transportFormRef" :model="transportForm" label-width="100px" size="small">
                 <el-form-item label="摆渡坑宽">
                   <el-select v-model="transportForm.pitWidth"  placeholder="请选择">
@@ -132,9 +136,11 @@
                   </el-select>
                 </el-form-item>
               </el-form>
-            </el-collapse-item>
+            </div>
             
-            <el-collapse-item title="拍齐顶升设备参数" name="lift">
+            <!-- 拍齐顶升设备参数 -->
+            <div class="form-section">
+              <h3>拍齐顶升设备参数</h3>
               <el-form ref="liftFormRef" :model="liftForm" label-width="100px" size="small">    
                 <el-form-item label="最大砖厚度">
                   <el-select v-model="liftForm.maxBrickThickness" placeholder="请选择">
@@ -144,9 +150,9 @@
                   </el-select>
                 </el-form-item>
               </el-form>
-            </el-collapse-item>
-          </el-collapse>
-
+            </div>
+          </div>
+    
           <div class="form-actions">
             <el-button type="primary" @click="searchDevices" class="btn-block">搜索设备</el-button>
             <el-button @click="resetAllForms" class="btn-block">重置所有</el-button>
@@ -207,6 +213,16 @@
                     ></el-input-number>
                   </template>
                 </el-table-column>
+                 <el-table-column label="操作">
+                  <template #default="scope">
+                    <el-button
+                        type="text"
+                        @click="selectDevice(scope.row, 'brick')"
+                    >
+                      选择
+                    </el-button>
+                  </template>
+                </el-table-column>
                 <el-table-column prop="materialCode" label="物料编码" width="100"></el-table-column>
                 <el-table-column prop="materialDescription" label="物料描述" width="200"></el-table-column>
                 <el-table-column prop="brickSpec" label="适用最大砖宽"></el-table-column>
@@ -229,16 +245,7 @@
                 <el-table-column prop="forkOpening" label="叉砖口内空(mm)"></el-table-column>
                 <el-table-column prop="notes" label="备注" width="300"></el-table-column>
                 <el-table-column prop="usedProjects" label="在用项目" width="200"></el-table-column>
-                <el-table-column label="操作">
-                  <template #default="scope">
-                    <el-button
-                        type="text"
-                        @click="selectDevice(scope.row, 'brick')"
-                    >
-                      选择
-                    </el-button>
-                  </template>
-                </el-table-column>
+               
               </el-table>
 
               <el-table v-if="activeTab === 'transport'" :data="transportDevices" border size="mini">
@@ -250,6 +257,16 @@
                         size="small"
                         :controls-position="'right'"
                     ></el-input-number>
+                  </template>
+                </el-table-column>
+                 <el-table-column label="操作">
+                  <template #default="scope">
+                    <el-button
+                        type="text"
+                        @click="selectDevice(scope.row, 'transport')"
+                    >
+                      选择
+                    </el-button>
                   </template>
                 </el-table-column>
                 <el-table-column prop="materialCode" label="物料编码" width="100"></el-table-column>
@@ -270,16 +287,7 @@
                 <el-table-column prop="hasControl" label="有电气控制"></el-table-column>
                 <el-table-column prop="notes" label="备注"></el-table-column>
                 <el-table-column prop="projects" label="使用项目"></el-table-column>
-                <el-table-column label="操作">
-                  <template #default="scope">
-                    <el-button
-                        type="text"
-                        @click="selectDevice(scope.row, 'transport')"
-                    >
-                      选择
-                    </el-button>
-                  </template>
-                </el-table-column>
+               
               </el-table>
 
               <el-table v-if="activeTab === 'transfer'" :data="transferDevices" border size="mini">
@@ -291,6 +299,16 @@
                         size="small"
                         :controls-position="'right'"
                     ></el-input-number>
+                  </template>
+                </el-table-column>
+                  <el-table-column label="操作">
+                  <template #default="scope">
+                    <el-button
+                        type="text"
+                        @click="selectDevice(scope.row, 'transfer')"
+                    >
+                      选择
+                    </el-button>
                   </template>
                 </el-table-column>
                 <el-table-column prop="materialCode" label="物料编码" width="100"></el-table-column>
@@ -309,16 +327,7 @@
                 <el-table-column prop="hasControl" label="有电气控制"></el-table-column>
                 <el-table-column prop="notes" label="备注" width="200"></el-table-column>
                 <el-table-column prop="projects" label="使用项目" width="100"></el-table-column>
-                <el-table-column label="操作">
-                  <template #default="scope">
-                    <el-button
-                        type="text"
-                        @click="selectDevice(scope.row, 'transfer')"
-                    >
-                      选择
-                    </el-button>
-                  </template>
-                </el-table-column>
+              
               </el-table>
 
               <el-table v-if="activeTab === 'lift'" :data="liftDevices" border size="mini">
@@ -330,6 +339,16 @@
                         size="small"
                         :controls-position="'right'"
                     ></el-input-number>
+                  </template>
+                </el-table-column>
+                <el-table-column label="操作">
+                  <template #default="scope">
+                    <el-button
+                        type="text"
+                        @click="selectDevice(scope.row, 'lift')"
+                    >
+                      选择
+                    </el-button>
                   </template>
                 </el-table-column>
                 <el-table-column prop="materialCode" label="物料编码" width="100"></el-table-column>
@@ -347,16 +366,7 @@
                 <el-table-column prop="rubberThickness" label="挡砖胶皮厚度(mm)"></el-table-column>
                 <el-table-column prop="notes" label="备注" width="200"></el-table-column>
                 <el-table-column prop="usedProjects" label="在用项目" width="200"></el-table-column>
-                <el-table-column label="操作">
-                  <template #default="scope">
-                    <el-button
-                        type="text"
-                        @click="selectDevice(scope.row, 'lift')"
-                    >
-                      选择
-                    </el-button>
-                  </template>
-                </el-table-column>
+                
               </el-table>
             </div>
 
@@ -741,10 +751,26 @@
 </template>
 
 <script setup name="DeviceSearchFlow">
-import {ref, reactive, onMounted, computed, watch} from 'vue';
+import { ref, reactive, onMounted, computed, watch, getCurrentInstance } from 'vue';
 import { listBrick, listTransport, listTransfer, listLift } from "../../../api/device.js";
+// 导入更新后的API
+import { addRecords } from "../../../api/device/records.js";
+import { updateProject } from "../../../api/device/project.js";
+import { addDevices } from "../../..//api/device/devices.js";
 import axios from "axios";
-import {ElMessage, ElLoading, ElEmpty} from "element-plus";
+import { ElMessage, ElLoading, ElEmpty, ElMessageBox } from 'element-plus';
+import { useRoute } from 'vue-router'
+
+// 修复：更安全地获取组件实例
+let proxy = null;
+const instance = getCurrentInstance();
+if (instance) {
+  proxy = instance.proxy;
+}
+
+// 路由实例和产线ID存储
+const route = useRoute()
+const productionLineId = ref('') // 存储从路由获取的产线ID
 
 // 步骤控制
 const currentStep = ref(1);
@@ -754,17 +780,17 @@ const isStep2Loading = ref(false); // 第二步加载状态
 // 设备标签页状态
 const activeTab = ref('brick');
 
-// 砖规格与数量数据
+// 砖规格与数量数据 - 增加code映射，用于匹配SelectionRecords的brickCount1-9
 const brickSpecs = ref([
-  { spec: '300×600', quantity: 0}, // 对应BrickCount3
-  { spec: '400×800', quantity: 0 },
-  { spec: '600×600', quantity: 0 , code: 3 },
-  { spec: '800×800', quantity: 0 },
-  { spec: '600×1200', quantity: 0, code: 5 }, // 对应BrickCount5
-  { spec: '1200×600', quantity: 0 },
-  { spec: '750×1500', quantity: 0 },
-  { spec: '800×1600', quantity: 0 },
-  { spec: '900×1800', quantity: 0 }
+  { spec: '300×600', quantity: 0, code: 1}, // 对应brickCount1
+  { spec: '400×800', quantity: 0, code: 2 }, // 对应brickCount2
+  { spec: '600×600', quantity: 0, code: 3 }, // 对应brickCount3
+  { spec: '800×800', quantity: 0, code: 4 }, // 对应brickCount4
+  { spec: '600×1200', quantity: 0, code: 5 }, // 对应brickCount5
+  { spec: '1200×600', quantity: 0, code: 6 }, // 对应brickCount6
+  { spec: '750×1500', quantity: 0, code: 7 }, // 对应brickCount7
+  { spec: '800×1600', quantity: 0, code: 8 }, // 对应brickCount8
+  { spec: '900×1800', quantity: 0, code: 9 }  // 对应brickCount9
 ]);
 
 // 表单数据 - 包含所有设备类型的参数
@@ -850,7 +876,10 @@ watch(currentStep, (newVal, oldVal) => {
         totalCounts.transport === 0 &&
         totalCounts.transfer === 0 && 
         totalCounts.lift === 0) {
-      reloadStep2Data();
+      reloadStep2Data().catch(err => {
+        console.error('步骤2数据加载失败:', err);
+        ElMessage.error('加载设备数据失败');
+      });
     }
   }
 });
@@ -1321,7 +1350,6 @@ const removeDevice = (index) => {
   }
 };
 
-// 导出选购记录
 const exportSelected = async () => {
   fullscreenLoading.value = true;
   try {
@@ -1331,6 +1359,61 @@ const exportSelected = async () => {
       return;
     }
 
+    // 1. 创建选型主记录
+    const selectionRecord = createSelectionRecordData();
+    const recordResponse = await addRecords(selectionRecord);
+    console.log("后端返回的完整响应：", recordResponse); // 关键：打印完整响应
+    if (!recordResponse || !recordResponse.recordId) {
+      throw new Error('创建选型记录失败，未返回有效ID');
+    }
+    const newRecordId = recordResponse.recordId;
+    console.log('创建选型主记录成功，ID:', newRecordId);
+
+
+    // 2. 向中间表插入设备记录（循环单条添加，适配后端无批量接口的情况）
+    // 2.1 转换设备类型为数字
+    const deviceTypeMap = {
+      '砖机': 1,
+      '运输车': 2,
+      '摆渡车': 3,
+      '拍齐顶升': 4
+    };
+
+    // 2.2 循环添加每条设备记录
+    const addPromises = selectedDevices.value.map(device => {
+      // 构造单条记录数据
+      const deviceData = {
+        recordId: newRecordId,
+        materialCode: device.materialCode,
+        deviceType: deviceTypeMap[device.type],
+        cartQuantity: device.quantity.toString(),
+        addTime: new Date()
+      };
+      
+        return addDevices(deviceData);
+    });
+
+    // 2.3 等待所有添加操作完成
+    const addResponses = await Promise.all(addPromises);
+    
+    // 2.4 检查是否有添加失败的记录
+    const failedRecords = addResponses.filter(res => res.data.code !== 200);
+    if (failedRecords.length > 0) {
+      throw new Error(`部分设备记录保存失败，失败数量: ${failedRecords.length}`);
+    }
+    console.log('设备记录已保存到中间表，数量:', selectedDevices.value.length);
+
+
+    // 3. 关联产线项目
+    if (productionLineId.value) {
+      await updateProject({
+        projectId: productionLineId.value,
+        recordId: newRecordId
+      });
+      console.log('更新产线项目关联成功');
+    }
+
+    // 4. 执行导出操作
     const selectedDevicesMap = {
       brick: [],
       transport: [],
@@ -1370,7 +1453,8 @@ const exportSelected = async () => {
     // 添加砖规格数量到导出数据
     const exportData = {
       ...selectedDevicesMap,
-      brickSpecs: brickSpecs.value.filter(item => item.quantity > 0)
+      brickSpecs: brickSpecs.value.filter(item => item.quantity > 0),
+      recordId: newRecordId // 将新创建的记录ID加入导出数据
     };
 
     const response = await axios.post(
@@ -1404,7 +1488,7 @@ const exportSelected = async () => {
     window.URL.revokeObjectURL(url);
     document.body.removeChild(link);
     fullscreenLoading.value = false;
-    ElMessage.success('导出成功');
+    ElMessage.success('导出成功，已创建选型记录');
 
   } catch (error) {
     console.error('导出失败:', error);
@@ -1420,6 +1504,36 @@ const exportSelected = async () => {
   }
 };
 
+// 创建选型记录数据
+const createSelectionRecordData = () => {
+  const now = new Date();
+  const record = {
+    operationTime: now,
+    exportTime: now,
+    recordStatus: 1, // 1-有效
+    brickSpec: form.brickSpec ? parseInt(form.brickSpec) : null,
+    style: form.style,
+    workstationCount: form.workstationCount ? parseInt(form.workstationCount) : null,
+    ferryPitwidth: transferForm.ferryPitWidth ? parseInt(transferForm.ferryPitWidth) : null,
+    ferryKeyFeature: transferForm.ferryKeyFeature,
+    ferryMaxBrickWidth: transferForm.maxBrickWidth,
+    ferryHasPit: transferForm.hasPit,
+    transportPitwidth: transportForm.pitWidth ? parseInt(transportForm.pitWidth) : null,
+    powerType: transportForm.powerType,
+    supportType: transportForm.supportType,
+    maxBrickThickness: liftForm.maxBrickThickness ? parseInt(liftForm.maxBrickThickness) : null
+  };
+  
+  // 设置砖规格数量（对应brickCount1到brickCount9）
+  brickSpecs.value.forEach(brick => {
+    if (brick.code && brick.quantity > 0) {
+      record[`brickCount${brick.code}`] = brick.quantity;
+    }
+  });
+  
+  return record;
+};
+
 // 完成流程
 const finishProcess = () => {
   ElMessage.success('选购流程已完成');
@@ -1428,10 +1542,46 @@ const finishProcess = () => {
   resetAllForms();
 };
 
-// 初始化页面
 onMounted(() => {
-  console.log('设备搜索流程页面已加载');
+  // 移除原有的 productionLineId 直接赋值
+  // 改为监听路由
+  const routeWatch = watch(
+    () => route.query.productionLineId,
+    (newVal) => {
+      productionLineId.value = newVal || '';
+      console.log('当前产线ID:', productionLineId.value);
+      // 产线ID获取后，再执行初始化加载
+      initPage();
+    },
+    { immediate: true } // 立即执行一次
+  );
+
+  // 组件卸载时清除监听
+  onUnmounted(() => {
+    routeWatch();
+  });
 });
+
+// 抽离初始化逻辑
+const initPage = async () => {
+  try {
+    if (!productionLineId.value) {
+      ElMessage.warning("未获取到产线信息，导出时将无法关联项目");
+    }
+    fullscreenLoading.value = true;
+    // 加载设备数据（带超时控制）
+    const loadPromise = reloadStep2Data();
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('数据加载超时')), 30000)
+    );
+    await Promise.race([loadPromise, timeoutPromise]);
+  } catch (error) {
+    console.error('组件初始化失败:', error);
+    ElMessage.error(`页面加载失败: ${error.message || '未知错误'}`);
+  } finally {
+    fullscreenLoading.value = false;
+  }
+};
 </script>
 
 <style scoped>
