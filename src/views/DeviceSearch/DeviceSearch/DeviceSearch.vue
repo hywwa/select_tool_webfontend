@@ -751,14 +751,15 @@
 </template>
 
 <script setup name="DeviceSearchFlow">
-import { ref, reactive, onMounted, computed, watch, getCurrentInstance } from 'vue';
+import { ref, reactive, onMounted, computed, watch, getCurrentInstance, onUnmounted } from 'vue';
 import { listBrick, listTransport, listTransfer, listLift } from "../../../api/device.js";
 // 导入更新后的API
 import { addRecords } from "../../../api/device/records.js";
-import { updateProject } from "../../../api/device/project.js";
+import { updateManagement } from "../../../api/device/management.js";
 import { addDevices } from "../../..//api/device/devices.js";
-import axios from "axios";
-import { ElMessage, ElLoading, ElEmpty, ElMessageBox } from 'element-plus';
+// 导入导出相关API
+import { exportSelectedDevices, downloadExportFile } from "../../../api/device/export.js";
+import { ElMessage, ElLoading, ElEmpty } from 'element-plus';
 import { useRoute } from 'vue-router'
 
 // 修复：更安全地获取组件实例
@@ -770,7 +771,8 @@ if (instance) {
 
 // 路由实例和产线ID存储
 const route = useRoute()
-const productionLineId = ref('') // 存储从路由获取的产线ID
+// 原定义：const productionLineId = ref('') 
+const productionLineId = ref(null); // 改为null，明确后续会存储数字
 
 // 步骤控制
 const currentStep = ref(1);
@@ -1362,7 +1364,7 @@ const exportSelected = async () => {
     // 1. 创建选型主记录
     const selectionRecord = createSelectionRecordData();
     const recordResponse = await addRecords(selectionRecord);
-    console.log("后端返回的完整响应：", recordResponse); // 关键：打印完整响应
+    console.log("后端返回的完整响应：", recordResponse);
     if (!recordResponse || !recordResponse.recordId) {
       throw new Error('创建选型记录失败，未返回有效ID');
     }
@@ -1370,7 +1372,7 @@ const exportSelected = async () => {
     console.log('创建选型主记录成功，ID:', newRecordId);
 
 
-    // 2. 向中间表插入设备记录（循环单条添加，适配后端无批量接口的情况）
+    // 2. 向中间表插入设备记录（循环单条添加）
     // 2.1 转换设备类型为数字
     const deviceTypeMap = {
       '砖机': 1,
@@ -1380,40 +1382,39 @@ const exportSelected = async () => {
     };
 
     // 2.2 循环添加每条设备记录
-    const addPromises = selectedDevices.value.map(device => {
-      // 构造单条记录数据
-      const deviceData = {
-        recordId: newRecordId,
-        materialCode: device.materialCode,
-        deviceType: deviceTypeMap[device.type],
-        cartQuantity: device.quantity.toString(),
-        addTime: new Date()
-      };
-      
-        return addDevices(deviceData);
+// 修改exportSelected方法中的响应处理部分
+const addPromises = selectedDevices.value.map(device => {
+  // 构造单条记录数据
+  const deviceData = {
+    recordId: newRecordId,
+    materialCode: device.materialCode,
+    deviceType: deviceTypeMap[device.type],
+    cartQuantity: device.quantity.toString(),
+    addTime: formatDateToBackend(new Date())
+  };
+  
+  return addDevices(deviceData);
+});
+
+// 等待所有添加操作完成
+const addResponses = await Promise.all(addPromises);
+
+// 修复：检查响应的code直接来自响应对象，而非res.data.code
+const failedRecords = addResponses.filter(res => res.code !== 200);
+if (failedRecords.length > 0) {
+  throw new Error(`部分设备记录保存失败，失败数量: ${failedRecords.length}`);
+}
+console.log('设备记录已保存到中间表，数量:', selectedDevices.value.length);
+
+
+// 3. 关联产线项目（修改后，增加错误详情捕获）
+if (productionLineId.value) {
+     await updateManagement({
+      projectId: productionLineId.value,
+      recordId: newRecordId
     });
-
-    // 2.3 等待所有添加操作完成
-    const addResponses = await Promise.all(addPromises);
-    
-    // 2.4 检查是否有添加失败的记录
-    const failedRecords = addResponses.filter(res => res.data.code !== 200);
-    if (failedRecords.length > 0) {
-      throw new Error(`部分设备记录保存失败，失败数量: ${failedRecords.length}`);
-    }
-    console.log('设备记录已保存到中间表，数量:', selectedDevices.value.length);
-
-
-    // 3. 关联产线项目
-    if (productionLineId.value) {
-      await updateProject({
-        projectId: productionLineId.value,
-        recordId: newRecordId
-      });
-      console.log('更新产线项目关联成功');
-    }
-
-    // 4. 执行导出操作
+}
+    // 4. 执行导出操作 - 使用导入的API
     const selectedDevicesMap = {
       brick: [],
       transport: [],
@@ -1425,68 +1426,50 @@ const exportSelected = async () => {
       switch(device.type) {
         case '砖机':
           selectedDevicesMap.brick.push({
-            materialCode: device.materialCode,
+            id: device.id,
             quantity: device.quantity
           });
           break;
         case '运输车':
           selectedDevicesMap.transport.push({
-            materialCode: device.materialCode,
+            id: device.id,
             quantity: device.quantity
           });
           break;
         case '摆渡车':
           selectedDevicesMap.transfer.push({
-            materialCode: device.materialCode,
+            id: device.id,
             quantity: device.quantity
           });
           break;
         case '拍齐顶升':
           selectedDevicesMap.lift.push({
-            materialCode: device.materialCode,
+            id: device.id,
             quantity: device.quantity
           });
           break;
       }
     });
 
-    // 添加砖规格数量到导出数据
-    const exportData = {
-      ...selectedDevicesMap,
-      brickSpecs: brickSpecs.value.filter(item => item.quantity > 0),
-      recordId: newRecordId // 将新创建的记录ID加入导出数据
-    };
+  // 修改导出数据的构造部分，严格匹配后端要求
+const exportData = {
+  // 只保留后端需要的四个设备类型字段，移除多余的recordId和brickSpecs
+  brick: selectedDevicesMap.brick,
+  transport: selectedDevicesMap.transport,
+  transfer: selectedDevicesMap.transfer,
+  lift: selectedDevicesMap.lift
+};
 
-    const response = await axios.post(
-      'http://106.53.219.143:8080/device/search/export-selected-together',
-      exportData,
-      {
-        responseType: 'blob',
-        headers: { 'Content-Type': 'application/json' },
-        validateStatus: status => status === 200
-      }
-    );
+// 确保每个设备类型字段都是包含id和quantity的对象数组
+// 例如: brick: [{"id": 1, "quantity": 2}, {"id": 3, "quantity": 1}]
 
-    const blob = response.data;
-    const excelBlob = new Blob([blob], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    });
+// 调用导出API
+const blob = await exportSelectedDevices(exportData);
 
-    const contentDisposition = response.headers['content-disposition'] || '';
-    const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-    const fileName = fileNameMatch
-      ? decodeURIComponent(fileNameMatch[1].replace(/['"]/g, ''))
-      : `selected_devices_${new Date().getTime()}.xlsx`;
-
-    const url = window.URL.createObjectURL(excelBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', fileName);
-    document.body.appendChild(link);
-    link.click();
-
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(link);
+    
+    // 使用导入的downloadExportFile API处理下载
+    downloadExportFile(blob, `设备选型清单_${new Date().getTime()}.xlsx`);
+    
     fullscreenLoading.value = false;
     ElMessage.success('导出成功，已创建选型记录');
 
@@ -1504,12 +1487,17 @@ const exportSelected = async () => {
   }
 };
 
-// 创建选型记录数据
+// 创建选型记录数据（修改日期字段）
 const createSelectionRecordData = () => {
   const now = new Date();
+  // 关键修改：使用格式化后的日期字符串，替代原 Date 对象
+  const formattedDate = formatDateToBackend(now);
+  
   const record = {
-    operationTime: now,
-    exportTime: now,
+    // 原代码：operationTime: now, （会被序列化为 ISO 8601 格式）
+    operationTime: formattedDate, // 改为格式化后的字符串
+    // 原代码：exportTime: now,
+    exportTime: formattedDate,    // 改为格式化后的字符串
     recordStatus: 1, // 1-有效
     brickSpec: form.brickSpec ? parseInt(form.brickSpec) : null,
     style: form.style,
@@ -1533,30 +1521,61 @@ const createSelectionRecordData = () => {
   
   return record;
 };
+// 新增：日期格式化工具函数（关键修复）
+const formatDateToBackend = (date) => {
+  if (!(date instanceof Date)) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份从0开始，需+1
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
 
-// 完成流程
-const finishProcess = () => {
-  ElMessage.success('选购流程已完成');
-  // 重置流程到第一步
-  currentStep.value = 1;
-  resetAllForms();
+// 完成流程（修改为更新isQuoted字段）
+const finishProcess = async () => {
+  fullscreenLoading.value = true; // 显示加载状态
+  try {
+    // 1. 若存在产线ID，更新产线的选型状态（isQuoted：0→1）
+    if (productionLineId.value) {
+      await updateManagement({
+        projectId: productionLineId.value, // 当前关联的产线ID
+        isQuoted: 1 // 核心修改：0=未完成 → 1=已完成（选型完成/已报价）
+      });
+      console.log(`产线${productionLineId.value}选型状态（isQuoted）更新为：已完成（1）`);
+    }
+
+    // 2. 重置流程到初始状态
+    currentStep.value = 1;
+    resetAllForms();
+
+    // 3. 差异化提示（区分是否关联产线）
+    ElMessage.success(productionLineId.value 
+      ? '选购流程已完成，产线选型状态已更新为“已完成”'
+      : '选购流程已完成（未关联产线，无需更新状态）'
+    );
+  } catch (error) {
+    // 4. 错误处理（保留流程重置，仅提示状态更新失败）
+    console.error('更新产线选型状态（isQuoted）失败:', error);
+    ElMessage.error('选购流程已重置，但产线状态更新失败，请重试');
+  } finally {
+    fullscreenLoading.value = false; // 隐藏加载状态
+  }
 };
 
 onMounted(() => {
-  // 移除原有的 productionLineId 直接赋值
-  // 改为监听路由
   const routeWatch = watch(
     () => route.query.productionLineId,
     (newVal) => {
-      productionLineId.value = newVal || '';
-      console.log('当前产线ID:', productionLineId.value);
-      // 产线ID获取后，再执行初始化加载
+      // 关键修复：将字符串参数转换为数字（适配后端Long类型）
+      productionLineId.value = newVal ? Number(newVal) : null; 
+      console.log('当前产线ID（数字类型）:', productionLineId.value, '类型:', typeof productionLineId.value);
       initPage();
     },
-    { immediate: true } // 立即执行一次
+    { immediate: true }
   );
 
-  // 组件卸载时清除监听
   onUnmounted(() => {
     routeWatch();
   });
@@ -1566,7 +1585,7 @@ onMounted(() => {
 const initPage = async () => {
   try {
     if (!productionLineId.value) {
-      ElMessage.warning("未获取到产线信息，导出时将无法关联项目");
+      ElMessage.warning("请创建项目和产线再开始选型，否则将无法关联项目保存选型");
     }
     fullscreenLoading.value = true;
     // 加载设备数据（带超时控制）
