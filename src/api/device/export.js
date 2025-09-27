@@ -18,6 +18,24 @@ export function exportSelectedDevices(data) {
   })
 }
 
+/**
+ * 新增：基于materialCode导出选型设备清单
+ * @param {Object} data - 包含所选设备信息的数据对象
+ * @param {Array} data.brick - 砖机选择列表，格式: [{materialCode: "xxx", quantity: 2}, ...]
+ * @param {Array} data.transfer - 摆渡车选择列表，格式: [{materialCode: "xxx", quantity: 1}, ...]
+ * @param {Array} data.lift - 拍齐顶升选择列表，格式: [{materialCode: "xxx", quantity: 3}, ...]
+ * @param {Array} data.transport - 运输车选择列表，格式: [{materialCode: "xxx", quantity: 2}, ...]
+ * @returns {Promise} - 返回导出文件的Promise
+ */
+export function exportByMaterialCode(data) {
+  return request({
+    url: '/device/export/selected-devices-by-material',
+    method: 'post',
+    data: data,
+    responseType: 'blob'  // 重要：指定响应类型为blob
+  })
+}
+
 
 export const downloadExportFile = (blob, fileName) => {
   try {

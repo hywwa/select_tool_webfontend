@@ -244,6 +244,7 @@ import { ElMessage } from 'element-plus'
 import { getManagement } from "@/api/device/management"
 import { getRecords } from "@/api/device/records"  
 import { listDevices } from "@/api/device/devices"  
+import { exportSelectedDevices, exportByMaterialCode, downloadExportFile } from "../../../api/device/export.js";
 
 
 // 路由实例
@@ -374,31 +375,199 @@ onMounted(() => {
   loadAllData();
 });
 
-// 重新导出按钮逻辑（若之前未实现，补充完整）
 const exportLoading = ref(false);
 function reExport() {
   exportLoading.value = true;
   const { recordId } = route.query;
-  if (!recordId) {
-    ElMessage.warning('缺少选型记录ID，无法导出');
+  
+  if (!recordId || selectedDevices.value.length === 0) {
+    ElMessage.warning('缺少设备数据，无法导出');
     exportLoading.value = false;
     return;
   }
-  // 调用导出接口（替换为你的实际导出API）
-  import('@/api/device/export').then(({ exportSelectedDevices }) => {
-    exportSelectedDevices({ recordId: Number(recordId) }).then(response => {
-      // 调用前端下载函数（复用你之前的downloadExportFile）
-      import('@/api/device/export').then(({ downloadExportFile }) => {
-        downloadExportFile(response.data, `设备选型清单_${recordId}.xlsx`);
-        ElMessage.success('导出成功');
+  
+  // 构造导出数据（基于materialCode）
+  const exportData = {
+    brick: [],
+    transfer: [],
+    lift: [],
+    transport: []
+  };
+  
+  // 记录错误信息
+  const errorInfo = {
+    missingMaterialCode: [],
+    unknownType: []
+  };
+  
+  selectedDevices.value.forEach(device => {
+    // 1. 验证设备基本信息是否完整
+    if (!device) {
+      console.warn('跳过无效设备对象');
+      return;
+    }
+    
+    // 2. 检查物料编码
+    if (!device.materialCode || device.materialCode.trim() === '') {
+      errorInfo.missingMaterialCode.push({
+        name: device.name || '未知设备',
+        id: device.id || '无ID'
       });
-    }).catch(err => {
-      console.error('重新导出失败:', err);
-      ElMessage.error('重新导出失败');
-    }).finally(() => {
-      exportLoading.value = false;
+      return;
+    }
+    
+    // 3. 处理设备类型（增加容错机制）
+    let key = '';
+    const deviceType = device.type || device.deviceType; // 兼容两种可能的类型字段
+    
+    if (!deviceType) {
+      errorInfo.unknownType.push({
+        name: device.name || '未知设备',
+        materialCode: device.materialCode
+      });
+      return;
+    }
+    
+    // 类型映射（同时支持字符串和数字类型）
+    if (typeof deviceType === 'string') {
+      switch(deviceType.trim()) {
+        case '砖机': key = 'brick'; break;
+        case '运输车': key = 'transport'; break;
+        case '摆渡车': key = 'transfer'; break;
+        case '拍齐顶升': key = 'lift'; break;
+        default: 
+          errorInfo.unknownType.push({
+            name: device.name || '未知设备',
+            type: deviceType,
+            materialCode: device.materialCode
+          });
+          return;
+      }
+    } else if (typeof deviceType === 'number') {
+      // 支持数字类型的设备类型（1-4对应四种设备）
+      switch(deviceType) {
+        case 1: key = 'brick'; break;
+        case 2: key = 'transport'; break;
+        case 3: key = 'transfer'; break;
+        case 4: key = 'lift'; break;
+        default: 
+          errorInfo.unknownType.push({
+            name: device.name || '未知设备',
+            type: deviceType,
+            materialCode: device.materialCode
+          });
+          return;
+      }
+    } else {
+      errorInfo.unknownType.push({
+        name: device.name || '未知设备',
+        type: deviceType,
+        materialCode: device.materialCode
+      });
+      return;
+    }
+    
+    // 4. 收集有效数据
+    exportData[key].push({
+      materialCode: device.materialCode,
+      quantity: device.quantity || 1
     });
   });
+  
+  // 输出错误日志，便于调试
+  if (errorInfo.missingMaterialCode.length > 0) {
+    console.warn('缺少物料编码的设备:', errorInfo.missingMaterialCode);
+  }
+  if (errorInfo.unknownType.length > 0) {
+    console.warn('未知设备类型:', errorInfo.unknownType);
+  }
+  
+  // 5. 检查有效数据
+  const hasValidData = Object.values(exportData).some(arr => arr.length > 0);
+  if (!hasValidData) {
+    // 显示更具体的错误信息
+    let warningMsg = '没有可导出的有效设备数据';
+    if (errorInfo.missingMaterialCode.length > 0 && errorInfo.unknownType.length > 0) {
+      warningMsg += '（部分设备缺少物料编码且存在未知设备类型）';
+    } else if (errorInfo.missingMaterialCode.length > 0) {
+      warningMsg += `（${errorInfo.missingMaterialCode.length}个设备缺少物料编码）`;
+    } else if (errorInfo.unknownType.length > 0) {
+      warningMsg += `（${errorInfo.unknownType.length}个设备类型未知）`;
+    }
+    ElMessage.warning(warningMsg);
+    exportLoading.value = false;
+    return;
+  }
+  
+  // 6. 如果有部分数据无效，提示用户
+  if (errorInfo.missingMaterialCode.length > 0 || errorInfo.unknownType.length > 0) {
+    let noticeMsg = '部分设备因数据不完整未被导出：';
+    if (errorInfo.missingMaterialCode.length > 0) {
+      noticeMsg += ` 缺少物料编码(${errorInfo.missingMaterialCode.length}个)`;
+    }
+    if (errorInfo.unknownType.length > 0) {
+      noticeMsg += ` 未知设备类型(${errorInfo.unknownType.length}个)`;
+    }
+    ElMessage.info(noticeMsg);
+  }
+  
+  // 7. 调用导出接口
+  exportByMaterialCode(exportData)
+    .then(response => {
+      // 增加详细日志，帮助诊断问题
+      console.log('导出接口响应对象:', response);
+      console.log('响应数据类型:', typeof response);
+      console.log('响应数据结构:', response);
+      
+      if (!response) {
+        throw new Error('服务器未返回任何响应');
+      }
+      
+      // 关键修复：处理不同格式的响应数据
+      let blobData;
+      
+      // 情况1: 响应本身就是Blob对象（有些库会直接返回Blob）
+      if (response instanceof Blob) {
+        blobData = response;
+      } 
+      // 情况2: 响应数据在data属性中
+      else if (response.data) {
+        blobData = response.data;
+      } 
+      // 情况3: 无法识别的响应结构
+      else {
+        throw new Error('无法识别的响应结构');
+      }
+      
+      // 验证Blob数据
+      if (!(blobData instanceof Blob)) {
+        // 尝试转换为Blob（处理ArrayBuffer等情况）
+        if (blobData instanceof ArrayBuffer) {
+          blobData = new Blob([blobData], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        } else if (typeof blobData === 'string') {
+          throw new Error('导出失败: ' + blobData);
+        } else {
+          // 增加更详细的错误信息
+          throw new Error(`服务器返回非预期数据类型: ${typeof blobData}, 数据: ${JSON.stringify(blobData)}`);
+        }
+      }
+      
+      // 验证文件大小
+      if (blobData.size === 0) {
+        throw new Error('服务器返回空文件');
+      }
+      
+      // 下载文件
+      downloadExportFile(blobData, `设备选型清单_${recordId}.xlsx`);
+      ElMessage.success('导出成功');
+    })
+    .catch(err => {
+      console.error('重新导出失败:', err);
+      ElMessage.error(err.message || '重新导出失败，请稍后重试');
+    })
+    .finally(() => {
+      exportLoading.value = false;
+    });
 }
 </script>
 

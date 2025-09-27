@@ -1,8 +1,7 @@
 import { createWebHistory, createRouter } from 'vue-router'
 /* Layout */
 import Layout from '@/layout'
-import Project from '@/views/device/project/index.vue'
-import ProjectManagement from '@/views/device/management/index.vue'
+
 
 /**
  * Note: 路由配置项
@@ -72,6 +71,26 @@ export const constantRoutes = [
       }
     ]
   },
+
+   // -------------------------- 新增：导出测试页面路由 --------------------------
+  {
+    path: '',
+    component: Layout, // 继承主布局（显示侧边栏、顶部导航）
+    children: [
+      {
+        path: '/export-test', // 访问路径：http://localhost:端口/export-test
+        name: 'ExportTest', // 路由唯一名称（必须填写，用于keep-alive）
+        component: () => import('@/views/ExportTest.vue'), // 懒加载组件
+        meta: { 
+          title: '导出测试', // 侧边栏菜单名称、面包屑名称
+          icon: 'download', // 侧边栏图标（使用现有svg图标，如"download"）
+          noCache: false // 是否缓存组件（默认false，支持keep-alive）
+        }
+      }
+    ]
+  },
+  // --------------------------------------------------------------------------
+
   {
     path: '/user',
     component: Layout,

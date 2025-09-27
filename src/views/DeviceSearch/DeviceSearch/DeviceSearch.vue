@@ -739,6 +739,7 @@
               @click="exportSelected" 
               class="export-btn btn-block" 
               v-if="selectedDevices.length > 0"
+              v-hasPermi="['device:records:export']"
             >
               导出选购记录
             </el-button>
@@ -753,11 +754,9 @@
 <script setup name="DeviceSearchFlow">
 import { ref, reactive, onMounted, computed, watch, getCurrentInstance, onUnmounted } from 'vue';
 import { listBrick, listTransport, listTransfer, listLift } from "../../../api/device.js";
-// 导入更新后的API
-import { addRecords } from "../../../api/device/records.js";
+import { addRecords, getRecords } from "../../../api/device/records.js";
 import { updateManagement } from "../../../api/device/management.js";
-import { addDevices } from "../../..//api/device/devices.js";
-// 导入导出相关API
+import { addDevices } from "../../../api/device/devices.js";
 import { exportSelectedDevices, downloadExportFile } from "../../../api/device/export.js";
 import { ElMessage, ElLoading, ElEmpty } from 'element-plus';
 import { useRoute } from 'vue-router'
@@ -769,10 +768,10 @@ if (instance) {
   proxy = instance.proxy;
 }
 
-// 路由实例和产线ID存储
+// 路由实例和参数存储
 const route = useRoute()
-// 原定义：const productionLineId = ref('') 
-const productionLineId = ref(null); // 改为null，明确后续会存储数字
+const productionLineId = ref(null);
+const selectionRecordId = ref(0); // 初始化ID为0
 
 // 步骤控制
 const currentStep = ref(1);
@@ -782,8 +781,8 @@ const isStep2Loading = ref(false); // 第二步加载状态
 // 设备标签页状态
 const activeTab = ref('brick');
 
-// 砖规格与数量数据 - 增加code映射，用于匹配SelectionRecords的brickCount1-9
 const brickSpecs = ref([
+// 砖规格与数量数据 - 增加code映射，用于匹配SelectionRecor
   { spec: '300×600', quantity: 0, code: 1}, // 对应brickCount1
   { spec: '400×800', quantity: 0, code: 2 }, // 对应brickCount2
   { spec: '600×600', quantity: 0, code: 3 }, // 对应brickCount3
@@ -813,12 +812,17 @@ const transferForm = reactive({
 const transportForm = reactive({
   pitWidth: '',
   supportType: '',
-  powerType: ''
+  powerType: '',
+  brickCount3: 0,
+  brickCount5: 0
 });
 
 // 拍齐顶升表单数据
 const liftForm = reactive({
-  maxBrickThickness: ''
+  maxBrickThickness: '',
+  minBrickWidth: 0,
+  maxBrickWidth: 0,
+  requiredBoardLength: 0
 });
 
 // 设备数据
@@ -993,16 +997,26 @@ const handleCurrentPageChange = async (type, currentPage) => {
 // 处理砖规格数量变化
 const handleBrickQuantityChange = (row) => {
   console.log(`砖规格 ${row.spec} 数量变更为: ${row.quantity}`);
-  // 可以在这里添加数量变化的业务逻辑
+  
+  // 更新运输车的特殊参数
+  if (row.code === 3) {
+    transportForm.brickCount3 = row.quantity;
+  }
+  if (row.code === 5) {
+    transportForm.brickCount5 = row.quantity;
+  }
+  
+  // 计算拍齐顶升的特殊参数
+  calculateBrickParams();
 };
 
-// 工具函数：解析砖规格（格式：长×宽），返回{ length: 数值, width: 数值 }
+// 解析砖规格（格式：长×宽），返回{ length: 数值, width: 数值 }
 const parseBrickSpec = (spec) => {
   if (!spec || typeof spec !== 'string') return null;
   const [lengthStr, widthStr] = spec.split('×');
   const length = parseInt(lengthStr, 10);
   const width = parseInt(widthStr, 10);
-  // 校验：排除非数字或无效值（如“×”分割失败）
+  // 校验：排除非数字或无效值
   if (isNaN(length) || isNaN(width) || length <= 0 || width <= 0) {
     console.warn(`无效砖规格：${spec}，已忽略`);
     return null;
@@ -1012,93 +1026,43 @@ const parseBrickSpec = (spec) => {
 
 // 计算砖相关关键参数：minBrickWidth、maxBrickWidth、RequiredBoardLength
 const calculateBrickParams = () => {
-  // 步骤1：筛选用户实际使用的砖规格（quantity > 0）并解析
+  // 筛选用户实际使用的砖规格（quantity > 0）并解析
   const usedBricks = brickSpecs.value
-    .filter(brick => brick.quantity > 0) // 排除数量为0的砖（不用的设备）
+    .filter(brick => brick.quantity > 0)
     .map(brick => ({
       ...brick,
       ...parseBrickSpec(brick.spec)
     }))
-    .filter(brick => brick.length !== undefined && brick.width !== undefined); // 排除解析失败的规格
+    .filter(brick => brick.length !== undefined && brick.width !== undefined);
 
   if (usedBricks.length === 0) {
-    return {
-      minBrickWidth: null,
-      maxBrickWidth: null,
-      requiredBoardLength: null
-    };
+    liftForm.minBrickWidth = 0;
+    liftForm.maxBrickWidth = 0;
+    liftForm.requiredBoardLength = 0;
+    return;
   }
 
-  // 步骤2：计算最小/最大砖宽
+  // 计算最小/最大砖宽
   const widths = usedBricks.map(brick => brick.width);
-  const minBrickWidth = Math.min(...widths);
-  const maxBrickWidth = Math.max(...widths);
+  liftForm.minBrickWidth = Math.min(...widths);
+  liftForm.maxBrickWidth = Math.max(...widths);
 
-  // 步骤3：计算最小砖长并确定托板长度
+  // 计算最小砖长并确定托板长度
   const lengths = usedBricks.map(brick => brick.length);
   const minBrickLength = Math.min(...lengths);
-  let requiredBoardLength;
+  
   if (minBrickLength <= 300) {
-    requiredBoardLength = 300;
+    liftForm.requiredBoardLength = 300;
   } else if (minBrickLength <= 400) {
-    requiredBoardLength = 370;
+    liftForm.requiredBoardLength = 370;
   } else {
-    requiredBoardLength = 550;
+    liftForm.requiredBoardLength = 550;
   }
 
-  console.log(`计算砖参数：最小宽=${minBrickWidth}, 最大宽=${maxBrickWidth}, 最小长=${minBrickLength}, 托板长=${requiredBoardLength}`);
-  return {
-    minBrickWidth,
-    maxBrickWidth,
-    requiredBoardLength
-  };
+  console.log(`计算砖参数：最小宽=${liftForm.minBrickWidth}, 最大宽=${liftForm.maxBrickWidth}, 托板长=${liftForm.requiredBoardLength}`);
 };
 
-// 应用拍齐顶升筛选条件
-const applyLiftFilters = (lifts) => {
-  let filtered = [...lifts];
-  
-  // 1. 物料编码筛选
-  
-  // 2. 适用最大砖厚度筛选（精确匹配）
-  if (!stringNullOrEmpty(liftForm.maxBrickThickness)) {
-    filtered = filtered.filter(l => l.brickThickness == liftForm.maxBrickThickness);
-  }
-  
-  // 3. 计算砖参数并应用砖宽范围筛选
-  const { minBrickWidth, maxBrickWidth, requiredBoardLength } = calculateBrickParams();
-  
-  if (minBrickWidth !== null && maxBrickWidth !== null) {
-    filtered = filtered.filter(l => {
-      if (stringNullOrEmpty(l.brickWidthRange)) {
-        return false;
-      }
-
-      const dbRangeParts = l.brickWidthRange.split('~');
-      if (dbRangeParts.length !== 2 ||
-          !Number.isInteger(parseInt(dbRangeParts[0], 10)) ||
-          !Number.isInteger(parseInt(dbRangeParts[1], 10))) {
-        console.warn(`拍齐顶升 ${l.materialCode} 的砖宽范围格式错误：${l.brickWidthRange}`);
-        return false;
-      }
-
-      const dbMinWidth = parseInt(dbRangeParts[0], 10);
-      const dbMaxWidth = parseInt(dbRangeParts[1], 10);
-
-      // 用户的砖宽范围完全落在数据库的范围区间内
-      return minBrickWidth >= dbMinWidth && maxBrickWidth <= dbMaxWidth;
-    });
-  }
-  
-  // 4. 托板砖长筛选
-  if (requiredBoardLength !== null) {
-    filtered = filtered.filter(l => l.plateLength == requiredBoardLength);
-  }
-  
-  return filtered;
-};
-
-// 根据类型获取设备数据
+// 根据类型获取设备数据 - 完全依赖后端筛选
 const fetchDevicesByType = async (type) => {
   try {
     let response;
@@ -1120,11 +1084,18 @@ const fetchDevicesByType = async (type) => {
       params.maxBrickWidth = transferForm.maxBrickWidth || undefined;
       params.hasPit = transferForm.hasPit || undefined;
     } else if (type === 'transport') {
+      // 运输车特殊筛选参数（对应后端brickCount3和brickCount5）
       params.pitWidth = transportForm.pitWidth || undefined;
       params.supportType = transportForm.supportType || undefined;
       params.powerType = transportForm.powerType || undefined;
+      params.brickCount3 = transportForm.brickCount3 || undefined;
+      params.brickCount5 = transportForm.brickCount5 || undefined;
     } else if (type === 'lift') {
+      // 拍齐顶升特殊筛选参数
       params.brickThickness = liftForm.maxBrickThickness || undefined;
+      params.minBrickWidth = liftForm.minBrickWidth || undefined;
+      params.maxBrickWidth = liftForm.maxBrickWidth || undefined;
+      params.requiredBoardLength = liftForm.requiredBoardLength || undefined;
     }
 
     // 调用对应API
@@ -1151,19 +1122,6 @@ const fetchDevicesByType = async (type) => {
       throw new Error(`获取${type}设备数据失败`);
     }
 
-    // 获取砖规格数量用于特殊筛选
-    const brickCount3 = brickSpecs.value.find(item => item.code === 3)?.quantity || 0;
-    const brickCount5 = brickSpecs.value.find(item => item.code === 5)?.quantity || 0;
-    
-    // 更新数据，应用对应设备类型的筛选逻辑
-    let filteredData = response.rows;
-    if (type === 'transport') {
-      filteredData = applyTransportFilters(response.rows, brickCount3, brickCount5);
-    } else if (type === 'lift') {
-      // 对拍齐顶升设备应用砖规格筛选
-      filteredData = applyLiftFilters(response.rows);
-    }
-
     // 确保每个设备都有quantity属性
     const deviceRefs = {
       brick: brickDevices,
@@ -1172,7 +1130,8 @@ const fetchDevicesByType = async (type) => {
       lift: liftDevices
     };
 
-    deviceRefs[type].value = filteredData.map(item => ({ 
+    // 直接使用后端返回的数据，不做前端筛选
+    deviceRefs[type].value = response.rows.map(item => ({ 
       ...item, 
       quantity: 1 
     }));
@@ -1180,59 +1139,10 @@ const fetchDevicesByType = async (type) => {
     // 更新总记录数
     totalCounts[type] = response.total || 0;
     
-    console.log(`加载${type}设备成功: 当前页${filteredData.length}条，共${response.total || 0}条`);
+    console.log(`加载${type}设备成功: 当前页${response.rows.length}条，共${response.total || 0}条`);
   } catch (error) {
     console.error(`获取${type}设备失败:`, error);
   }
-};
-
-// 应用运输车筛选条件
-const applyTransportFilters = (transports, brickCount3, brickCount5) => {
-  let filtered = [...transports];
-  
-  // 应用基础筛选条件
-  if (!stringNullOrEmpty(transportForm.pitWidth)) {
-    filtered = filtered.filter(t => t.pitWidth == transportForm.pitWidth);
-  }
-  
-  if (!stringNullOrEmpty(transportForm.supportType)) {
-    filtered = filtered.filter(t => 
-      t.supportType?.includes(transportForm.supportType) ?? false
-    );
-  }
-  
-  if (!stringNullOrEmpty(transportForm.powerType)) {
-    filtered = filtered.filter(t => 
-      t.powerType?.includes(transportForm.powerType) ?? false
-    );
-  }
-  
-  // 应用特殊条件筛选
-  if (transportForm.pitWidth) {
-    // 转换为数字进行比较
-    const pitWidth = parseInt(transportForm.pitWidth);
-    
-    // 特殊条件1: 坑宽5500且(3号砖数量=6或5号砖数量=3)
-    if (pitWidth === 5500 && (brickCount3 === 6 || brickCount5 === 3)) {
-      filtered = filtered.filter(t =>
-        t.brickCount600 === 6 || t.brickCount600x1200 === 3
-      );
-    }
-    // 特殊条件2: 坑宽5500且(3号砖数量=7或5号砖数量=4)
-    else if (pitWidth === 5500 && (brickCount3 === 7 || brickCount5 === 4)) {
-      filtered = filtered.filter(t =>
-        t.brickCount600 === 7 || t.brickCount600x1200 === 4
-      );
-    }
-    // 特殊条件3: 坑宽4500且3号砖数量=6且支架形式=常规且电力形式=交流
-    else if (pitWidth === 4500 && brickCount3 === 6 && 
-             transportForm.supportType === "常规" && 
-             transportForm.powerType === "交流") {
-      filtered = filtered.filter(t => t.brickCount600 === 6);
-    }
-  }
-  
-  return filtered;
 };
 
 // 辅助函数：检查字符串是否为null或空
@@ -1272,9 +1182,14 @@ const resetAllForms = () => {
   transportForm.pitWidth = '';
   transportForm.supportType = '';
   transportForm.powerType = '';
+  transportForm.brickCount3 = 0;
+  transportForm.brickCount5 = 0;
   
   // 重置拍齐顶升表单
   liftForm.maxBrickThickness = '';
+  liftForm.minBrickWidth = 0;
+  liftForm.maxBrickWidth = 0;
+  liftForm.requiredBoardLength = 0;
   
   // 清除搜索结果
   showSearchResult.value = false;
@@ -1382,39 +1297,38 @@ const exportSelected = async () => {
     };
 
     // 2.2 循环添加每条设备记录
-// 修改exportSelected方法中的响应处理部分
-const addPromises = selectedDevices.value.map(device => {
-  // 构造单条记录数据
-  const deviceData = {
-    recordId: newRecordId,
-    materialCode: device.materialCode,
-    deviceType: deviceTypeMap[device.type],
-    cartQuantity: device.quantity.toString(),
-    addTime: formatDateToBackend(new Date())
-  };
-  
-  return addDevices(deviceData);
-});
-
-// 等待所有添加操作完成
-const addResponses = await Promise.all(addPromises);
-
-// 修复：检查响应的code直接来自响应对象，而非res.data.code
-const failedRecords = addResponses.filter(res => res.code !== 200);
-if (failedRecords.length > 0) {
-  throw new Error(`部分设备记录保存失败，失败数量: ${failedRecords.length}`);
-}
-console.log('设备记录已保存到中间表，数量:', selectedDevices.value.length);
-
-
-// 3. 关联产线项目（修改后，增加错误详情捕获）
-if (productionLineId.value) {
-     await updateManagement({
-      projectId: productionLineId.value,
-      recordId: newRecordId
+    const addPromises = selectedDevices.value.map(device => {
+      // 构造单条记录数据
+      const deviceData = {
+        recordId: newRecordId,
+        materialCode: device.materialCode,
+        deviceType: deviceTypeMap[device.type],
+        cartQuantity: device.quantity.toString(),
+        addTime: formatDateToBackend(new Date())
+      };
+      
+      return addDevices(deviceData);
     });
-}
-    // 4. 执行导出操作 - 使用导入的API
+
+    // 等待所有添加操作完成
+    const addResponses = await Promise.all(addPromises);
+
+    // 检查响应状态
+    const failedRecords = addResponses.filter(res => res.code !== 200);
+    if (failedRecords.length > 0) {
+      throw new Error(`部分设备记录保存失败，失败数量: ${failedRecords.length}`);
+    }
+    console.log('设备记录已保存到中间表，数量:', selectedDevices.value.length);
+
+
+    // 3. 关联产线项目
+    if (productionLineId.value) {
+         await updateManagement({
+          projectId: productionLineId.value,
+          recordId: newRecordId
+        });
+    }
+    // 4. 执行导出操作
     const selectedDevicesMap = {
       brick: [],
       transport: [],
@@ -1451,23 +1365,18 @@ if (productionLineId.value) {
       }
     });
 
-  // 修改导出数据的构造部分，严格匹配后端要求
-const exportData = {
-  // 只保留后端需要的四个设备类型字段，移除多余的recordId和brickSpecs
-  brick: selectedDevicesMap.brick,
-  transport: selectedDevicesMap.transport,
-  transfer: selectedDevicesMap.transfer,
-  lift: selectedDevicesMap.lift
-};
+    // 构造导出数据
+    const exportData = {
+      brick: selectedDevicesMap.brick,
+      transport: selectedDevicesMap.transport,
+      transfer: selectedDevicesMap.transfer,
+      lift: selectedDevicesMap.lift
+    };
 
-// 确保每个设备类型字段都是包含id和quantity的对象数组
-// 例如: brick: [{"id": 1, "quantity": 2}, {"id": 3, "quantity": 1}]
-
-// 调用导出API
-const blob = await exportSelectedDevices(exportData);
-
+    // 调用导出API
+    const blob = await exportSelectedDevices(exportData);
     
-    // 使用导入的downloadExportFile API处理下载
+    // 处理下载
     downloadExportFile(blob, `设备选型清单_${new Date().getTime()}.xlsx`);
     
     fullscreenLoading.value = false;
@@ -1487,17 +1396,14 @@ const blob = await exportSelectedDevices(exportData);
   }
 };
 
-// 创建选型记录数据（修改日期字段）
+// 创建选型记录数据
 const createSelectionRecordData = () => {
   const now = new Date();
-  // 关键修改：使用格式化后的日期字符串，替代原 Date 对象
   const formattedDate = formatDateToBackend(now);
   
   const record = {
-    // 原代码：operationTime: now, （会被序列化为 ISO 8601 格式）
-    operationTime: formattedDate, // 改为格式化后的字符串
-    // 原代码：exportTime: now,
-    exportTime: formattedDate,    // 改为格式化后的字符串
+    operationTime: formattedDate,
+    exportTime: formattedDate,
     recordStatus: 1, // 1-有效
     brickSpec: form.brickSpec ? parseInt(form.brickSpec) : null,
     style: form.style,
@@ -1521,11 +1427,12 @@ const createSelectionRecordData = () => {
   
   return record;
 };
-// 新增：日期格式化工具函数（关键修复）
+
+// 日期格式化工具函数
 const formatDateToBackend = (date) => {
   if (!(date instanceof Date)) return '';
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份从0开始，需+1
+  const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
@@ -1533,15 +1440,15 @@ const formatDateToBackend = (date) => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 };
 
-// 完成流程（修改为更新isQuoted字段）
+// 完成流程
 const finishProcess = async () => {
   fullscreenLoading.value = true; // 显示加载状态
   try {
     // 1. 若存在产线ID，更新产线的选型状态（isQuoted：0→1）
     if (productionLineId.value) {
       await updateManagement({
-        projectId: productionLineId.value, // 当前关联的产线ID
-        isQuoted: 1 // 核心修改：0=未完成 → 1=已完成（选型完成/已报价）
+        projectId: productionLineId.value,
+        isQuoted: 1
       });
       console.log(`产线${productionLineId.value}选型状态（isQuoted）更新为：已完成（1）`);
     }
@@ -1550,13 +1457,12 @@ const finishProcess = async () => {
     currentStep.value = 1;
     resetAllForms();
 
-    // 3. 差异化提示（区分是否关联产线）
+    // 3. 差异化提示
     ElMessage.success(productionLineId.value 
       ? '选购流程已完成，产线选型状态已更新为“已完成”'
       : '选购流程已完成（未关联产线，无需更新状态）'
     );
   } catch (error) {
-    // 4. 错误处理（保留流程重置，仅提示状态更新失败）
     console.error('更新产线选型状态（isQuoted）失败:', error);
     ElMessage.error('选购流程已重置，但产线状态更新失败，请重试');
   } finally {
@@ -1564,13 +1470,73 @@ const finishProcess = async () => {
   }
 };
 
+// 加载已有选型记录参数
+const loadSelectionParams = async (recordId) => {
+  try {
+    if (!recordId || recordId === 0) return false;
+    
+    fullscreenLoading.value = true;
+    const response = await getRecords(recordId);
+    
+    if (response && response.data) {
+      const params = response.data;
+      
+      // 填充砖机参数
+      form.brickSpec = params.brickSpec?.toString() || '';
+      form.style = params.style || '';
+      form.workstationCount = params.workstationCount?.toString() || '';
+      
+      // 填充摆渡车参数
+      transferForm.ferryPitWidth = params.ferryPitwidth?.toString() || null;
+      transferForm.ferryKeyFeature = params.ferryKeyFeature || '';
+      transferForm.maxBrickWidth = params.ferryMaxBrickWidth || '';
+      transferForm.hasPit = params.ferryHasPit || '';
+      
+      // 填充运输车参数
+      transportForm.pitWidth = params.transportPitwidth?.toString() || '';
+      transportForm.powerType = params.powerType || '';
+      transportForm.supportType = params.supportType || '';
+      
+      // 填充拍齐顶升参数
+      liftForm.maxBrickThickness = params.maxBrickThickness?.toString() || '';
+      
+      // 填充砖规格数量
+      brickSpecs.value.forEach(brick => {
+        const count = params[`brickCount${brick.code}`];
+        if (count !== undefined && count !== null) {
+          brick.quantity = count;
+        }
+      });
+      
+      // 自动计算相关参数
+      calculateBrickParams();
+      
+      // 自动执行搜索
+      await searchDevices();
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('加载选型参数失败:', error);
+    ElMessage.error('加载历史选型参数失败');
+    return false;
+  } finally {
+    fullscreenLoading.value = false;
+  }
+};
+
+// 初始化逻辑
 onMounted(() => {
   const routeWatch = watch(
-    () => route.query.productionLineId,
-    (newVal) => {
-      // 关键修复：将字符串参数转换为数字（适配后端Long类型）
-      productionLineId.value = newVal ? Number(newVal) : null; 
-      console.log('当前产线ID（数字类型）:', productionLineId.value, '类型:', typeof productionLineId.value);
+    () => [route.query.productionLineId, route.query.recordId],
+    ([newProductionLineId, newRecordId]) => {
+      // 保存产线ID和记录ID，确保为数字类型
+      productionLineId.value = newProductionLineId ? Number(newProductionLineId) : null;
+      selectionRecordId.value = newRecordId ? Number(newRecordId) : 0;
+      
+      console.log('当前产线ID:', productionLineId.value);
+      console.log('当前选型记录ID:', selectionRecordId.value);
+      
       initPage();
     },
     { immediate: true }
@@ -1581,14 +1547,25 @@ onMounted(() => {
   });
 });
 
-// 抽离初始化逻辑
+// 初始化页面逻辑
 const initPage = async () => {
   try {
     if (!productionLineId.value) {
       ElMessage.warning("请创建项目和产线再开始选型，否则将无法关联项目保存选型");
     }
+    
     fullscreenLoading.value = true;
-    // 加载设备数据（带超时控制）
+    
+    // 只有当记录ID不为0时才加载参数
+    if (selectionRecordId.value !== 0) {
+      const loaded = await loadSelectionParams(selectionRecordId.value);
+      if (loaded) {
+        fullscreenLoading.value = false;
+        return;
+      }
+    }
+    
+    // 记录ID为0或加载失败，执行正常初始化
     const loadPromise = reloadStep2Data();
     const timeoutPromise = new Promise((_, reject) => 
       setTimeout(() => reject(new Error('数据加载超时')), 30000)

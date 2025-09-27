@@ -9,6 +9,15 @@ export function listProject(query) {
   })
 }
 
+// 通过项目ID列表查询项目管理列表
+export function listProjectByIds(projectIds) {
+  return request({
+    url: '/device/project/listByIds',
+    method: 'post',
+    data: projectIds
+  })
+}
+
 // 查询项目管理详细
 export function getProject(mainProjectId) {
   return request({
