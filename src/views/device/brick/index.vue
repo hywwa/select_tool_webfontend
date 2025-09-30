@@ -105,6 +105,14 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
+      <el-form-item label="吸盘形式" prop="suctionCupType">
+        <el-input
+          v-model="queryParams.suctionCupType"
+          placeholder="请输入吸盘形式"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
       <el-form-item label="吸盘大小" prop="suctionCupSize">
         <el-input
           v-model="queryParams.suctionCupSize"
@@ -247,6 +255,9 @@
         <el-form-item label="吸盘数量" prop="suctionCupCount">
           <el-input v-model="form.suctionCupCount" placeholder="请输入吸盘数量" />
         </el-form-item>
+          <el-form-item label="吸盘形式" prop="suctionCupType">
+          <el-input v-model="form.suctionCupType" placeholder="请输入吸盘形式" />
+        </el-form-item>
         <el-form-item label="吸盘大小" prop="suctionCupSize">
           <el-input v-model="form.suctionCupSize" placeholder="请输入吸盘大小(mm)" />
         </el-form-item>
@@ -334,6 +345,15 @@ const data = reactive({
     ],
     materialDescription: [
       { required: true, message: "物料描述不能为空", trigger: "blur" }
+    ],
+    brickSpec: [
+      { required: true, message: "最大砖宽不能为空", trigger: "blur" }
+    ],
+    style: [
+      { required: true, message: "样式不能为空", trigger: "blur" }
+    ],
+    workstationCount: [
+      { required: true, message: "工位数不能为空", trigger: "blur" }
     ],
   }
 })

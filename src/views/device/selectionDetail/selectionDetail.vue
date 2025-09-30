@@ -20,8 +20,11 @@
           <div class="info-value">{{ productionLineInfo.projectName || '-' }}</div>
         </div>
         <div class="info-item">
-          <div class="info-label">关联项目</div>
-          <div class="info-value">{{ productionLineInfo.mainProjectName || '-' }}</div>
+          <div class="info-label">从属项目</div>
+          <div class="info-value">
+            <template v-if="mainProjectLoading">加载中...</template>
+            <template v-else>{{ mainProjectName || '-' }}</template>
+          </div>
         </div>
         <div class="info-item">
           <div class="info-label">创建人</div>
@@ -50,6 +53,7 @@
       </div>
     </el-card>
 
+    <!-- 其他内容保持不变 -->
     <!-- 操作按钮 -->
     <div class="operation-bar mb-4">
       <el-button 
@@ -245,6 +249,8 @@ import { getManagement } from "@/api/device/management"
 import { getRecords } from "@/api/device/records"  
 import { listDevices } from "@/api/device/devices"  
 import { exportSelectedDevices, exportByMaterialCode, downloadExportFile } from "../../../api/device/export.js";
+// 导入获取项目详情的接口
+import { getProject } from "@/api/device/project"
 
 
 // 路由实例
@@ -263,11 +269,15 @@ const deviceTypeMap = {
 const paramLoading = ref(true)
 const deviceLoading = ref(true)
 const selectedDevicesLoading = ref(false)
+// 新增：从属项目加载状态
+const mainProjectLoading = ref(false)
 
 // 核心数据（产线信息、选型参数、设备列表）
 const productionLineInfo = ref({})
 const selectionParams = ref({})
 const selectedDevices = ref([])
+// 新增：存储从属项目名称
+const mainProjectName = ref('')
 
 // 时间格式化工具函数
 function parseTime(time) {
@@ -281,11 +291,35 @@ function parseTime(time) {
   return `${year}-${month}-${day} ${hours}:${minute}`;
 }
 
+// 新增：获取从属项目名称
+function getMainProjectName(projectId) {
+  return new Promise((resolve) => {
+    if (!projectId) {
+      mainProjectName.value = '';
+      resolve();
+      return;
+    }
+    
+    mainProjectLoading.value = true;
+    getProject(projectId).then(response => {
+      mainProjectName.value = response.data?.projectName || '';
+    }).catch(err => {
+      console.error('获取从属项目信息失败:', err);
+      mainProjectName.value = '';
+    }).finally(() => {
+      mainProjectLoading.value = false;
+      resolve();
+    });
+  });
+}
+
 // 1. 获取产线信息（封装为Promise，便于按顺序执行）
 function getProductionLineInfo(productionLineId) {
   return new Promise((resolve) => {
     getManagement(productionLineId).then(response => {
       productionLineInfo.value = response.data || {};
+      // 获取产线信息后，立即查询从属项目名称
+      return getMainProjectName(productionLineInfo.value.mainProjectId);
     }).catch(err => {
       console.error('获取产线信息失败:', err);
       ElMessage.error('获取产线信息失败');
@@ -335,6 +369,7 @@ async function loadAllData() {
   selectionParams.value = {};
   selectedDevices.value = [];
   selectedDevicesLoading.value = false;
+  mainProjectName.value = ''; // 清空从属项目名称
   
   // 步骤2：强制DOM更新，确保清空状态生效
   await nextTick();

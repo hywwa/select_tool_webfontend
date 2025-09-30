@@ -41,6 +41,14 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
+       <el-form-item label="底架形式" prop="baseType">
+        <el-input
+          v-model="queryParams.baseType"
+          placeholder="请输入底架形式"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
       <el-form-item label="拍齐气缸" prop="alignCylinder">
         <el-input
           v-model="queryParams.alignCylinder"
@@ -69,6 +77,14 @@
         <el-input
           v-model="queryParams.alignWheelCount"
           placeholder="请输入拍齐轮个数"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="导向形式" prop="guideType">
+        <el-input
+          v-model="queryParams.guideType"
+          placeholder="请输入导向形式"
           clearable
           @keyup.enter="handleQuery"
         />
@@ -189,6 +205,9 @@
         <el-form-item label="线架宽度" prop="frameWidth">
           <el-input v-model="form.frameWidth" placeholder="请输入安装适用线架宽度(mm)" />
         </el-form-item>
+        <el-form-item label="底架形式" prop="baseType">
+          <el-input v-model="form.baseType" placeholder="请输入底架形式" />
+        </el-form-item>
         <el-form-item label="拍齐气缸" prop="alignCylinder">
           <el-input v-model="form.alignCylinder" placeholder="请输入拍齐气缸" />
         </el-form-item>
@@ -200,6 +219,9 @@
         </el-form-item>
         <el-form-item label="拍齐轮数" prop="alignWheelCount">
           <el-input v-model="form.alignWheelCount" placeholder="请输入拍齐轮个数" />
+        </el-form-item>
+         <el-form-item label="导向形式" prop="guideType">
+          <el-input v-model="form.guideType" placeholder="请输入导向形式" />
         </el-form-item>
         <el-form-item label="导向滑块" prop="guideSlider">
           <el-input v-model="form.guideSlider" placeholder="请输入导向滑块" />
@@ -266,6 +288,15 @@ const data = reactive({
     ],
     materialDescription: [
       { required: true, message: "物料描述不能为空", trigger: "blur" }
+    ],
+    brickWidthRange: [
+      { required: true, message: "砖宽范围", trigger: "blur" }
+    ],
+    brickThickness: [
+      { required: true, message: "砖厚度不能为空", trigger: "blur" }
+    ],
+    plateLength: [
+      { required: true, message: "托砖板长不能为空", trigger: "blur" }
     ],
   }
 })

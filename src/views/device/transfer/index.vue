@@ -57,10 +57,26 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
+      <el-form-item label="有无坑" prop="hasPit">
+        <el-input
+          v-model="queryParams.hasPit"
+          placeholder="请输入有无坑"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
       <el-form-item label="定位模式" prop="positioning">
         <el-input
           v-model="queryParams.positioning"
           placeholder="请输入定位模式"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+       <el-form-item label="电力形式" prop="powerType">
+        <el-input
+          v-model="queryParams.powerType"
+          placeholder="请输入电力形式"
           clearable
           @keyup.enter="handleQuery"
         />
@@ -220,8 +236,14 @@
         <el-form-item label="轨道内宽" prop="trackWidth">
           <el-input v-model="form.trackWidth" placeholder="请输入轨道内宽(mm)" />
         </el-form-item>
+        <el-form-item label="有无坑" prop="hasPit">
+          <el-input v-model="form.hasPit" placeholder="请输入有无坑" />
+        </el-form-item>
         <el-form-item label="定位模式" prop="positioning">
           <el-input v-model="form.positioning" placeholder="请输入定位模式" />
+        </el-form-item>
+          <el-form-item label="电力形式" prop="powerType">
+          <el-input v-model="form.powerType" placeholder="请输入电力形式" />
         </el-form-item>
         <el-form-item label="行走电机" prop="motor">
           <el-input v-model="form.motor" placeholder="请输入行走电机" />
@@ -290,6 +312,24 @@ const data = reactive({
     projects: null
   },
   rules: {
+    materialCode: [
+      { required: true, message: "物料编号不能为空", trigger: "blur" }
+    ],
+    materialDescription: [
+      { required: true, message: "物料描述不能为空", trigger: "blur" }
+    ],
+    ferryPitWidth: [
+      { required: true, message: "摆渡坑宽不能为空", trigger: "blur" }
+    ],
+    ferryKeyFeature: [
+      { required: true, message: "摆渡车关键特征不能为空", trigger: "blur" }
+    ],
+    maxBrickWidth: [
+      { required: true, message: "最大砖宽不能为空", trigger: "blur" }
+    ],
+    hasPit: [
+      { required: true, message: "有无坑不能为空", trigger: "blur" }
+    ],
   }
 })
 

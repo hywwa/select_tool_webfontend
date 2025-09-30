@@ -72,7 +72,7 @@
             </el-form>
           </div>
 
-         <!-- 其他设备参数区域 - 移除折叠面板，直接展示所有内容 -->
+         <!-- 其他设备参数区域 -->
           <div class="device-params-container">
             <!-- 摆渡车设备参数 -->
             <div class="form-section">
@@ -86,7 +86,7 @@
                   </el-select>
                 </el-form-item>
                 
-                <el-form-item label="关键特征">
+                <el-form-item label="摆渡车关键特征">
                   <el-select v-model="transferForm.ferryKeyFeature" placeholder="请选择">
                     <el-option label="常规" value="常规"></el-option>
                     <el-option label="鱼骨" value="鱼骨"></el-option>
@@ -94,7 +94,7 @@
                   </el-select>
                 </el-form-item>
                 
-                <el-form-item label="最大砖宽">
+                <el-form-item label="最大砖宽度">
                   <el-select v-model="transferForm.maxBrickWidth" placeholder="请选择">
                     <el-option label="非液压升降摆渡" value="非液压升降摆渡"></el-option>
                     <el-option label="900" value="900"></el-option>
@@ -245,7 +245,6 @@
                 <el-table-column prop="forkOpening" label="叉砖口内空(mm)"></el-table-column>
                 <el-table-column prop="notes" label="备注" width="300"></el-table-column>
                 <el-table-column prop="usedProjects" label="在用项目" width="200"></el-table-column>
-               
               </el-table>
 
               <el-table v-if="activeTab === 'transport'" :data="transportDevices" border size="mini">
@@ -287,7 +286,6 @@
                 <el-table-column prop="hasControl" label="有电气控制"></el-table-column>
                 <el-table-column prop="notes" label="备注"></el-table-column>
                 <el-table-column prop="projects" label="使用项目"></el-table-column>
-               
               </el-table>
 
               <el-table v-if="activeTab === 'transfer'" :data="transferDevices" border size="mini">
@@ -327,7 +325,6 @@
                 <el-table-column prop="hasControl" label="有电气控制"></el-table-column>
                 <el-table-column prop="notes" label="备注" width="200"></el-table-column>
                 <el-table-column prop="projects" label="使用项目" width="100"></el-table-column>
-              
               </el-table>
 
               <el-table v-if="activeTab === 'lift'" :data="liftDevices" border size="mini">
@@ -366,7 +363,6 @@
                 <el-table-column prop="rubberThickness" label="挡砖胶皮厚度(mm)"></el-table-column>
                 <el-table-column prop="notes" label="备注" width="200"></el-table-column>
                 <el-table-column prop="usedProjects" label="在用项目" width="200"></el-table-column>
-                
               </el-table>
             </div>
 
@@ -734,15 +730,54 @@
         <div class="step-actions">
           <el-button @click="prevStep" class="btn-block btn-prev">上一步</el-button>
           <div class="btn-group">
-            <el-button 
-              v-loading.fullscreen.lock="fullscreenLoading" 
-              @click="exportSelected" 
-              class="export-btn btn-block" 
-              v-if="selectedDevices.length > 0"
-              v-hasPermi="['device:records:export']"
-            >
-              导出选购记录
-            </el-button>
+            <!-- 根据报价状态显示不同的导出按钮 -->
+            <template v-if="isQuoted === '0'">
+              <!-- 未报价状态：显示技术附件和报价清单导出按钮 -->
+              <el-button
+                v-loading.fullscreen.lock="isExporting"
+                @click="handleExportTechnicalAttachment"
+                class="export-btn btn-block"
+                v-if="selectedDevices.length > 0"
+                v-hasPermi="['device:records:export']"
+              >
+                <i class="el-icon-document" v-if="!isExporting"></i>
+                <span v-if="!isExporting">导出技术附件</span>
+                <span v-else>
+                  <i class="el-icon-loading loading-icon"></i>
+                  导出中...
+                </span>
+              </el-button>
+              
+              <el-button
+                v-loading.fullscreen.lock="isQuotationExporting"
+                @click="handleExportQuotationList"
+                class="export-btn btn-block"
+                v-if="selectedDevices.length > 0"
+                v-hasPermi="['device:records:export']"
+              >
+                <i class="el-icon-s-grid" v-if="!isQuotationExporting"></i>
+                <span v-if="!isQuotationExporting">导出报价清单</span>
+                <span v-else>
+                  <i class="el-icon-loading loading-icon"></i>
+                  导出中...
+                </span>
+              </el-button>
+            </template>
+            
+            <template v-if="isQuoted === '1'">
+              <!-- 已报价状态：显示导出设备清单按钮 -->
+              <el-button 
+                v-loading.fullscreen.lock="fullscreenLoading" 
+                @click="exportSelected" 
+                class="export-btn btn-block" 
+                v-if="selectedDevices.length > 0"
+                v-hasPermi="['device:records:export']"
+              >
+                导出设备清单
+              </el-button>
+            </template>
+            
+            <!-- 完成按钮保持不变 -->
             <el-button type="success" @click="finishProcess" class="btn-block btn-finish">完成</el-button>
           </div>
         </div>
@@ -758,6 +793,9 @@ import { addRecords, getRecords } from "../../../api/device/records.js";
 import { updateManagement } from "../../../api/device/management.js";
 import { addDevices } from "../../../api/device/devices.js";
 import { exportSelectedDevices, downloadExportFile } from "../../../api/device/export.js";
+// 导入技术附件和报价单导出API
+import { exportEquipmentTechnicalAttachment } from '@/api/device/wordExport'
+import { exportQuotation } from '@/api/device/exportQuotation'
 import { ElMessage, ElLoading, ElEmpty } from 'element-plus';
 import { useRoute } from 'vue-router'
 
@@ -772,6 +810,7 @@ if (instance) {
 const route = useRoute()
 const productionLineId = ref(null);
 const selectionRecordId = ref(0); // 初始化ID为0
+const isQuoted = ref('0'); // 报价状态：0-未报价，1-已报价
 
 // 步骤控制
 const currentStep = ref(1);
@@ -853,6 +892,10 @@ const selectedPagination = reactive({
   currentPage: 1,
   pageSize: 5
 });
+
+// 导出状态管理
+const isExporting = ref(false);                // 技术附件导出状态
+const isQuotationExporting = ref(false);       // 报价单导出状态
 
 // 计算属性 - 检查是否所有设备列表都为空
 const isEmptyState = computed(() => {
@@ -1267,6 +1310,89 @@ const removeDevice = (index) => {
   }
 };
 
+/**
+ * 处理技术附件导出逻辑
+ */
+const handleExportTechnicalAttachment = async () => {
+  // 1. 防重复点击 + 初始化状态
+  if (isExporting.value) return
+  isExporting.value = true
+  let loadingInstance = null
+
+  try {
+    // 2. 显示全局加载提示（增强用户感知）
+    loadingInstance = ElLoading.service({
+      text: '正在生成Word文档...',
+      background: 'rgba(255, 255, 255, 0.8)'
+    })
+
+    // 3. 调用导出接口（获取Blob流）
+    const blob = await exportEquipmentTechnicalAttachment()
+
+    // 4. 生成动态文件名
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+    const fileName = `${dateStr}-沙特RAK-窑后储砖线技术附件.docx`
+
+    // 5. 触发文件下载
+    downloadExportFile(blob, fileName)
+
+    // 6. 导出成功提示
+    ElMessage.success('Word文档导出成功！')
+
+  } catch (error) {
+    // 7. 导出失败处理
+    ElMessage.error(`导出失败：${error.message || '请稍后重试'}`)
+    console.error('技术附件导出接口异常：', error)
+
+  } finally {
+    // 8. 清理状态
+    isExporting.value = false
+    if (loadingInstance) loadingInstance.close()
+  }
+}
+
+/**
+ * 处理报价单导出逻辑
+ */
+const handleExportQuotationList = async () => {
+  // 1. 防重复点击 + 初始化状态
+  if (isQuotationExporting.value) return
+  isQuotationExporting.value = true
+  let loadingInstance = null
+
+  try {
+    // 2. 显示全局加载提示
+    loadingInstance = ElLoading.service({
+      text: '正在生成报价单Excel...',
+      background: 'rgba(255, 255, 255, 0.8)'
+    })
+
+    // 3. 调用报价单导出接口
+    const blob = await exportQuotation()
+
+    // 4. 生成动态文件名
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+    const fileName = `${dateStr}-沙特RAK-窑后储砖报价单.xlsx`
+
+    // 5. 触发文件下载
+    downloadExportFile(blob, fileName)
+
+    // 6. 导出成功提示
+    ElMessage.success('报价单Excel导出成功！')
+
+  } catch (error) {
+    // 7. 导出失败处理
+    ElMessage.error(`导出失败：${error.message || '请稍后重试'}`)
+    console.error('报价单导出接口异常：', error)
+
+  } finally {
+    // 8. 清理状态
+    isQuotationExporting.value = false
+    if (loadingInstance) loadingInstance.close()
+  }
+}
+
+// 导出设备清单（已报价状态）
 const exportSelected = async () => {
   fullscreenLoading.value = true;
   try {
@@ -1448,9 +1574,9 @@ const finishProcess = async () => {
     if (productionLineId.value) {
       await updateManagement({
         projectId: productionLineId.value,
-        isQuoted: 1
+        isQuoted: parseInt(isQuoted.value) + 1
       });
-      console.log(`产线${productionLineId.value}选型状态（isQuoted）更新为：已完成（1）`);
+      console.log(`产线${productionLineId.value}选型状态（isQuoted）更新为：${parseInt(isQuoted.value) + 1}`);
     }
 
     // 2. 重置流程到初始状态
@@ -1459,7 +1585,7 @@ const finishProcess = async () => {
 
     // 3. 差异化提示
     ElMessage.success(productionLineId.value 
-      ? '选购流程已完成，产线选型状态已更新为“已完成”'
+      ? '选购流程已完成，产线选型状态已更新'
       : '选购流程已完成（未关联产线，无需更新状态）'
     );
   } catch (error) {
@@ -1528,14 +1654,16 @@ const loadSelectionParams = async (recordId) => {
 // 初始化逻辑
 onMounted(() => {
   const routeWatch = watch(
-    () => [route.query.productionLineId, route.query.recordId],
-    ([newProductionLineId, newRecordId]) => {
-      // 保存产线ID和记录ID，确保为数字类型
+    () => [route.query.productionLineId, route.query.recordId, route.query.status],
+    ([newProductionLineId, newRecordId, newStatus]) => {
+      // 保存产线ID、记录ID和报价状态
       productionLineId.value = newProductionLineId ? Number(newProductionLineId) : null;
       selectionRecordId.value = newRecordId ? Number(newRecordId) : 0;
+      isQuoted.value = newStatus || '0'; // 默认未报价状态
       
       console.log('当前产线ID:', productionLineId.value);
       console.log('当前选型记录ID:', selectionRecordId.value);
+      console.log('当前报价状态:', isQuoted.value);
       
       initPage();
     },
@@ -2050,4 +2178,16 @@ h4 {
   color: white;
   border-color: #faad14;
 }
+
+/* 导出按钮加载图标 */
+.loading-icon {
+  animation: rotating 1s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes rotating {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 </style>
+    

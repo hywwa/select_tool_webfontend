@@ -34,13 +34,16 @@
           />
         </el-form-item>
         
-        <el-form-item label="最后修改时间" prop="lastModifyTime">
-          <el-date-picker clearable
-            v-model="templateQueryParams.lastModifyTime"
-            type="date"
+        <el-form-item label="最后修改时间" prop="modifyTimeRange">
+          <el-date-picker 
+            v-model="templateQueryParams.modifyTimeRange"
+            type="daterange"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
             value-format="YYYY-MM-DD"
-            placeholder="请选择最后修改时间">
-          </el-date-picker>
+            clearable
+          ></el-date-picker>
         </el-form-item>
         
         <el-form-item>
@@ -64,32 +67,7 @@
         border
       >
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column label="ID" align="center" prop="projectId" />
-        <el-table-column label="关联的选型记录ID" align="center" prop="recordId" />
-        <el-table-column label="模版名称" align="center" prop="projectName" />
-        <el-table-column label="创建人" align="center" prop="creator" />
-        <el-table-column label="最后修改时间" align="center" prop="lastModifyTime" width="220">
-          <template #default="scope">
-            <span>{{ parseTime(scope.row.lastModifyTime, '{y}-{m}-{d} {h}:{i}:{s}') || '-' }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="最新操作人" align="center" prop="lastOperator">
-          <template #default="scope">
-            <span>{{ scope.row.lastOperator || '-' }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="备注" align="center" prop="remarks">
-          <template #default="scope">
-            <span>{{ scope.row.remarks || '-' }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" align="center" prop="projectStatus">
-          <template #default="scope">
-            <el-tag type="warning">项目模版</el-tag>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="操作" align="center" class-name="small-padding fixed-width" min-width="240">
+          <el-table-column label="操作" align="center" class-name="small-padding fixed-width" min-width="240">
           <template #default="scope">
             <!-- 查看选型详情按钮 -->
             <el-button 
@@ -112,6 +90,28 @@
             >
               取消模版
             </el-button>
+          </template>
+        </el-table-column>
+        <el-table-column label="模版名称" align="center" prop="projectName" />
+        <el-table-column label="创建人" align="center" prop="creator" />
+        <el-table-column label="最后修改时间" align="center" prop="lastModifyTime" width="220">
+          <template #default="scope">
+            <span>{{ parseTime(scope.row.lastModifyTime, '{y}-{m}-{d} {h}:{i}:{s}') || '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="最新操作人" align="center" prop="lastOperator">
+          <template #default="scope">
+            <span>{{ scope.row.lastOperator || '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="备注" align="center" prop="remarks">
+          <template #default="scope">
+            <span>{{ scope.row.remarks || '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" align="center" prop="projectStatus">
+          <template #default="scope">
+            <el-tag type="warning">项目模版</el-tag>
           </template>
         </el-table-column>
       </el-table>
@@ -153,19 +153,28 @@
           />
         </el-form-item>
         
-        <el-form-item label="最后修改时间" prop="lastModifyTime">
-          <el-date-picker clearable
-            v-model="projectQueryParams.lastModifyTime"
-            type="date"
+        <el-form-item label="最后修改时间" prop="modifyTimeRange">
+          <el-date-picker 
+            v-model="projectQueryParams.modifyTimeRange"
+            type="daterange"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
             value-format="YYYY-MM-DD"
-            placeholder="请选择最后修改时间">
-          </el-date-picker>
+            clearable
+          ></el-date-picker>
         </el-form-item>
         
-        <el-form-item label="是否报价完成" prop="isQuoted">
-          <el-select v-model="projectQueryParams.isQuoted" placeholder="请选择" clearable>
-            <el-option label="未完成" value="0"></el-option>
-            <el-option label="已完成" value="1"></el-option>
+        <el-form-item label="产线状态" prop="isQuoted">
+          <el-select 
+            v-model="projectQueryParams.isQuoted" 
+            placeholder="请选择" 
+            clearable
+            class="form-input"
+          >
+            <el-option label="未报价" value="0"></el-option>
+            <el-option label="报价完成" value="1"></el-option>
+            <el-option label="选型完成" value="2"></el-option>
           </el-select>
         </el-form-item>
         
@@ -208,43 +217,7 @@
         border
       >
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column label="ID" align="center" prop="projectId" />
-        <el-table-column label="关联的选型记录ID" align="center" prop="recordId" />
-        <el-table-column label="项目名称" align="center" prop="projectName" />
-        <el-table-column label="创建人" align="center" prop="creator" />
-        <el-table-column label="最后修改时间" align="center" prop="lastModifyTime" width="220">
-          <template #default="scope">
-            <span>{{ parseTime(scope.row.lastModifyTime, '{y}-{m}-{d} {h}:{i}:{s}') || '-' }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="最新操作人" align="center" prop="lastOperator">
-          <template #default="scope">
-            <span>{{ scope.row.lastOperator || '-' }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="备注" align="center" prop="remarks">
-          <template #default="scope">
-            <span>{{ scope.row.remarks || '-' }}</span>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="是否报价完成" align="center" prop="isQuoted">
-          <template #default="scope">
-            <el-tag :type="scope.row.isQuoted === 1 ? 'success' : 'info'">
-              {{ scope.row.isQuoted === 1 ? '已完成' : '未完成' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="状态" align="center" prop="projectStatus">
-          <template #default="scope">
-            <el-tag :type="scope.row.projectStatus === 0 ? 'primary' : 'warning'">
-              {{ scope.row.projectStatus === 0 ? '正常项目' : '项目模版' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        
-        <el-table-column label="操作" align="center" class-name="small-padding fixed-width" min-width="240">
+ <el-table-column label="操作" align="center" class-name="small-padding fixed-width" min-width="240">
           <template #default="scope">
             <!-- 查看选型详情按钮 -->
             <el-button 
@@ -280,6 +253,41 @@
             >
               取消模版
             </el-button>
+          </template>
+        </el-table-column>
+        <el-table-column label="项目名称" align="center" prop="projectName" />
+        <el-table-column label="创建人" align="center" prop="creator" />
+        <el-table-column label="最后修改时间" align="center" prop="lastModifyTime" width="220">
+          <template #default="scope">
+            <span>{{ parseTime(scope.row.lastModifyTime, '{y}-{m}-{d} {h}:{i}:{s}') || '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="最新操作人" align="center" prop="lastOperator">
+          <template #default="scope">
+            <span>{{ scope.row.lastOperator || '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="备注" align="center" prop="remarks">
+          <template #default="scope">
+            <span>{{ scope.row.remarks || '-' }}</span>
+          </template>
+        </el-table-column>
+        
+        <el-table-column label="产线状态" align="center" prop="isQuoted">
+          <template #default="scope">
+            <el-tag 
+              :type="scope.row.isQuoted === 0 ? 'info' : scope.row.isQuoted === 1 ? 'success' : 'primary'"
+            >
+              {{ scope.row.isQuoted === 0 ? '未报价' : scope.row.isQuoted === 1 ? '报价完成' : '选型完成' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        
+        <el-table-column label="状态" align="center" prop="projectStatus">
+          <template #default="scope">
+            <el-tag :type="scope.row.projectStatus === 0 ? 'primary' : 'warning'">
+              {{ scope.row.projectStatus === 0 ? '正常项目' : '项目模版' }}
+            </el-tag>
           </template>
         </el-table-column>
       </el-table>
@@ -356,15 +364,16 @@
           />
         </el-form-item>
         
-        <!-- 项目视图显示是否报价完成 -->
+        <!-- 项目视图显示产线状态 -->
         <el-form-item 
-          label="是否报价完成" 
+          label="产线状态" 
           prop="isQuoted"
           v-show="activeTab === 'projects'"
         >
           <el-select v-model="formData.isQuoted" placeholder="请选择">
-            <el-option label="未完成" value="0"></el-option>
-            <el-option label="已完成" value="1"></el-option>
+            <el-option label="未报价" value="0"></el-option>
+            <el-option label="报价完成" value="1"></el-option>
+            <el-option label="选型完成" value="2"></el-option>
           </el-select>
         </el-form-item>
         
@@ -422,6 +431,46 @@ const parseTime = (time, format = '{y}-{m}-{d} {h}:{i}:{s}') => {
   }
 };
 
+// 处理日期范围查询参数
+const formatDateRangeParams = (params) => {
+  // 创建参数副本，避免修改原始响应式对象
+  const queryParams = { ...params };
+  
+  // 处理日期范围
+  if (queryParams.modifyTimeRange && queryParams.modifyTimeRange.length === 2) {
+    // 开始日期: 00:00:00
+    queryParams.startTime = `${queryParams.modifyTimeRange[0]} 00:00:00`;
+    // 结束日期: 23:59:59
+    queryParams.endTime = `${queryParams.modifyTimeRange[1]} 23:59:59`;
+  }
+  
+  // 删除原始的日期范围参数，避免传给后端
+  delete queryParams.modifyTimeRange;
+  
+  return queryParams;
+};
+
+// 客户端日期范围过滤
+const filterByDateRange = (items, dateRange) => {
+  // 如果没有日期范围条件，直接返回所有项目
+  if (!dateRange || dateRange.length !== 2) {
+    return items;
+  }
+  
+  const startDate = new Date(dateRange[0]);
+  const endDate = new Date(dateRange[1]);
+  // 设置结束日期为当天的23:59:59
+  endDate.setHours(23, 59, 59, 999);
+  
+  return items.filter(item => {
+    if (!item.lastModifyTime) return false;
+    
+    const itemDate = new Date(item.lastModifyTime);
+    // 检查项目日期是否在选择的范围内
+    return itemDate >= startDate && itemDate <= endDate;
+  });
+};
+
 // 视图切换相关 - 默认显示模版列表
 const activeTab = ref('templates')
 
@@ -460,7 +509,7 @@ const formRules = reactive({
     { required: true, message: "创建人不能为空", trigger: "blur" }
   ],
   isQuoted: [
-    { required: true, message: "是否报价完成不能为空", trigger: "change" }
+    { required: true, message: "产线状态不能为空", trigger: "change" }
   ],
   projectStatus: [
     { required: true, message: "状态不能为空", trigger: "change" }
@@ -474,7 +523,9 @@ const templateQueryParams = reactive({
   recordId: null,
   projectName: null,
   creator: null,
-  lastModifyTime: null,
+  modifyTimeRange: null, // 日期范围选择器
+  startTime: null,       // 转换后的开始时间
+  endTime: null,         // 转换后的结束时间
   lastOperator: null,
   remarks: null,
   projectStatus: 1  // 固定查询模版
@@ -487,7 +538,9 @@ const projectQueryParams = reactive({
   recordId: null,
   projectName: null,
   creator: null,
-  lastModifyTime: null,
+  modifyTimeRange: null, // 日期范围选择器
+  startTime: null,       // 转换后的开始时间
+  endTime: null,         // 转换后的结束时间
   lastOperator: null,
   remarks: null,
   isQuoted: null,
@@ -526,11 +579,21 @@ function handleTabChange(tabName) {
 /** 查询模版列表 */
 function getTemplateList() {
   templateLoading.value = true
-  listManagement(templateQueryParams).then(response => {
+  // 保存原始日期参数用于客户端过滤
+  const originalDateRange = [...(templateQueryParams.modifyTimeRange || [])];
+  // 格式化日期参数
+  const queryParams = formatDateRangeParams(templateQueryParams)
+  
+  listManagement(queryParams).then(response => {
     console.log("模版接口返回:", response)
-    templateList.value = response.rows || []
-    templateTotal.value = response.total || 0
-    templateLoading.value = false
+    // 先保存原始数据
+    const originalList = response.rows || [];
+    // 应用客户端日期过滤
+    const filteredList = filterByDateRange(originalList, originalDateRange);
+    
+    templateList.value = filteredList;
+    templateTotal.value = filteredList.length;
+    templateLoading.value = false;
   }).catch(error => {
     console.error("模版列表加载失败:", error)
     templateList.value = []
@@ -543,11 +606,21 @@ function getTemplateList() {
 /** 查询项目列表 */
 function getProjectList() {
   projectLoading.value = true
-  listManagement(projectQueryParams).then(response => {
+  // 保存原始日期参数用于客户端过滤
+  const originalDateRange = [...(projectQueryParams.modifyTimeRange || [])];
+  // 格式化日期参数
+  const queryParams = formatDateRangeParams(projectQueryParams)
+  
+  listManagement(queryParams).then(response => {
     console.log("项目接口返回:", response)
-    projectList.value = response.rows || []
-    projectTotal.value = response.total || 0
-    projectLoading.value = false
+    // 先保存原始数据
+    const originalList = response.rows || [];
+    // 应用客户端日期过滤
+    const filteredList = filterByDateRange(originalList, originalDateRange);
+    
+    projectList.value = filteredList;
+    projectTotal.value = filteredList.length;
+    projectLoading.value = false;
   }).catch(error => {
     console.error("项目列表加载失败:", error)
     projectList.value = []
@@ -574,6 +647,10 @@ function resetTemplateQuery() {
   if (proxy.$refs["templateQueryRef"]) {
     proxy.resetForm("templateQueryRef")
   }
+  // 重置日期范围
+  templateQueryParams.modifyTimeRange = null
+  templateQueryParams.startTime = null
+  templateQueryParams.endTime = null
   templateQueryParams.projectStatus = 1
   handleTemplateQuery()
 }
@@ -583,6 +660,10 @@ function resetProjectQuery() {
   if (proxy.$refs["projectQueryRef"]) {
     proxy.resetForm("projectQueryRef")
   }
+  // 重置日期范围
+  projectQueryParams.modifyTimeRange = null
+  projectQueryParams.startTime = null
+  projectQueryParams.endTime = null
   projectQueryParams.projectStatus = 0
   handleProjectQuery()
 }

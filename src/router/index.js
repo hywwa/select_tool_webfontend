@@ -91,6 +91,25 @@ export const constantRoutes = [
   },
   // --------------------------------------------------------------------------
 
+  // 新增：设备选择-产线路由（隐藏）
+  {
+    path: '/selectDevice',
+    component: Layout,
+    hidden: true, // 隐藏路由，不在侧边栏显示
+    children: [
+      {
+        path: 'production-line', // 完整路径：/selectDevice/production-line
+        name: 'SelectDeviceProductionLine', // 唯一路由名称
+        component: () => import('@/views/device/productionline/index.vue'), // 组件路径，根据实际情况调整
+        meta: { 
+          title: '选择设备产线', // 面包屑中显示的标题
+          noCache: true // 不缓存组件
+        }
+      }
+    ]
+  },
+  // --------------------------------------------------------------------------
+
   {
     path: '/user',
     component: Layout,

@@ -50,10 +50,26 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
+      <el-form-item label="支架形式" prop="supportType">
+        <el-input
+          v-model="queryParams.supportType"
+          placeholder="请输入托升支架形式"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
       <el-form-item label="定位模式" prop="positioning">
         <el-input
           v-model="queryParams.positioning"
           placeholder="请输入定位模式"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+       <el-form-item label="电力形式" prop="powerType">
+        <el-input
+          v-model="queryParams.powerType"
+          placeholder="请输入电力形式"
           clearable
           @keyup.enter="handleQuery"
         />
@@ -226,8 +242,14 @@
         <el-form-item label="托升支架宽度" prop="supportWidth">
           <el-input v-model="form.supportWidth" placeholder="请输入托升支架宽度(mm)" />
         </el-form-item>
+         <el-form-item label="托升支架形式" prop="supportType">
+          <el-input v-model="form.supportType" placeholder="请输入托升支架形式" />
+        </el-form-item>
         <el-form-item label="定位模式" prop="positioning">
           <el-input v-model="form.positioning" placeholder="请输入定位模式" />
+        </el-form-item>
+         <el-form-item label="电力形式" prop="powerType">
+          <el-input v-model="form.powerType" placeholder="请输入电力形式" />
         </el-form-item>
         <el-form-item label="顶升结构" prop="liftingMechanism">
           <el-input v-model="form.liftingMechanism" placeholder="请输入顶升结构" />
@@ -301,6 +323,21 @@ const data = reactive({
     projects: null
   },
   rules: {
+    materialCode: [
+      { required: true, message: "物料编号不能为空", trigger: "blur" }
+    ],
+    materialDescription: [
+      { required: true, message: "物料描述不能为空", trigger: "blur" }
+    ],
+    pitWidth: [
+      { required: true, message: "坑宽不能为空", trigger: "blur" }
+    ],
+    supportType: [
+      { required: true, message: "支架形式不能为空", trigger: "blur" }
+    ],
+    powerType: [
+      { required: true, message: "电力形式不能为空", trigger: "blur" }
+    ],
   }
 })
 
