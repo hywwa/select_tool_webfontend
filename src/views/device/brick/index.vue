@@ -17,13 +17,21 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
+      <!-- 最大砖宽改为下拉选择 -->
       <el-form-item label="最大砖宽" prop="brickSpec">
-        <el-input
+        <el-select
           v-model="queryParams.brickSpec"
-          placeholder="请输入最大砖宽"
+          placeholder="请选择最大砖宽"
           clearable
-          @keyup.enter="handleQuery"
-        />
+          style="width: 180px"
+        >
+          <el-option
+            v-for="item in brickSpecOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          ></el-option>
+        </el-select>
       </el-form-item>
       <el-form-item label="移砖行程" prop="travelDistance">
         <el-input
@@ -33,21 +41,37 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
+      <!-- 样式改为下拉选择 -->
       <el-form-item label="样式" prop="style">
-        <el-input
+        <el-select
           v-model="queryParams.style"
-          placeholder="请输入样式"
+          placeholder="请选择样式"
           clearable
-          @keyup.enter="handleQuery"
-        />
+          style="width: 180px"
+        >
+          <el-option
+            v-for="item in styleOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          ></el-option>
+        </el-select>
       </el-form-item>
+      <!-- 工位数改为下拉选择 -->
       <el-form-item label="工位数" prop="workstationCount">
-        <el-input
+        <el-select
           v-model="queryParams.workstationCount"
-          placeholder="请输入工位数"
+          placeholder="请选择工位数"
           clearable
-          @keyup.enter="handleQuery"
-        />
+          style="width: 180px"
+        >
+          <el-option
+            v-for="item in workstationCountOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          ></el-option>
+        </el-select>
       </el-form-item>
       <el-form-item label="提升速比" prop="liftRatio">
         <el-input
@@ -222,17 +246,83 @@
         <el-form-item label="物料描述" prop="materialDescription">
           <el-input v-model="form.materialDescription" placeholder="请输入物料描述" />
         </el-form-item>
+        <!-- 最大砖宽改为下拉选择+管理按钮 -->
         <el-form-item label="最大砖宽" prop="brickSpec">
-          <el-input v-model="form.brickSpec" placeholder="请输入适用最大砖宽" />
+          <div class="flex items-center">
+            <el-select
+              v-model="form.brickSpec"
+              placeholder="请选择最大砖宽"
+              style="width: 320px"
+            >
+              <el-option
+                v-for="item in brickSpecOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              ></el-option>
+            </el-select>
+            <el-button
+              type="text"
+              icon="Setting"
+              @click="openDictDialog('最大砖宽')"
+              style="margin-left: 10px"
+            >
+              管理
+            </el-button>
+          </div>
         </el-form-item>
         <el-form-item label="移砖行程" prop="travelDistance">
           <el-input v-model="form.travelDistance" placeholder="请输入移砖行程(mm)" />
         </el-form-item>
+        <!-- 样式改为下拉选择+管理按钮 -->
         <el-form-item label="样式" prop="style">
-          <el-input v-model="form.style" placeholder="请输入样式" />
+          <div class="flex items-center">
+            <el-select
+              v-model="form.style"
+              placeholder="请选择样式"
+              style="width: 320px"
+            >
+              <el-option
+                v-for="item in styleOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              ></el-option>
+            </el-select>
+            <el-button
+              type="text"
+              icon="Setting"
+              @click="openDictDialog('样式')"
+              style="margin-left: 10px"
+            >
+              管理
+            </el-button>
+          </div>
         </el-form-item>
+        <!-- 工位数改为下拉选择+管理按钮 -->
         <el-form-item label="工位数" prop="workstationCount">
-          <el-input v-model="form.workstationCount" placeholder="请输入工位数" />
+          <div class="flex items-center">
+            <el-select
+              v-model="form.workstationCount"
+              placeholder="请选择工位数"
+              style="width: 320px"
+            >
+              <el-option
+                v-for="item in workstationCountOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              ></el-option>
+            </el-select>
+            <el-button
+              type="text"
+              icon="Setting"
+              @click="openDictDialog('工位数')"
+              style="margin-left: 10px"
+            >
+              管理
+            </el-button>
+          </div>
         </el-form-item>
         <el-form-item label="提升速比" prop="liftRatio">
           <el-input v-model="form.liftRatio" placeholder="请输入提升速比" />
@@ -290,17 +380,103 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 字典管理弹窗 -->
+    <el-dialog :title="dictDialog.title" v-model="dictDialog.open" width="500px" append-to-body>
+      <!-- 字典表单 -->
+      <el-form ref="dictRef" :model="dictDialog.form" :rules="dictDialog.rules" label-width="80px" class="mb10">
+        <el-form-item label="参数类型" prop="category">
+          <el-select
+            v-model="dictDialog.form.category"
+            placeholder="请选择参数类型"
+            :disabled="true"
+          >
+            <el-option label="最大砖宽" value="最大砖宽"></el-option>
+            <el-option label="样式" value="样式"></el-option>
+            <el-option label="工位数" value="工位数"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="字典值" prop="itemName">
+          <el-input
+            v-model="dictDialog.form.itemName"
+            placeholder="请输入字典值（如：1200mm、双列、6工位）"
+          ></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="submitDictForm">保存</el-button>
+          <el-button @click="dictDialog.open = false">取消</el-button>
+        </el-form-item>
+      </el-form>
+
+      <!-- 字典列表表格 -->
+      <el-table :data="dictDialog.dictList" border size="mini" style="width: 100%">
+        <el-table-column label="字典值" prop="itemName" align="center"></el-table-column>
+        <el-table-column label="操作" align="center" width="120">
+          <template #default="scope">
+            <el-button
+              type="text"
+              icon="Edit"
+              size="mini"
+              @click="handleDictEdit(scope.row)"
+            >
+              修改
+            </el-button>
+            <el-button
+              type="text"
+              icon="Delete"
+              size="mini"
+              @click="handleDictDelete(scope.row)"
+              style="color: #f56c6c"
+            >
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
 <script setup name="Brick">
 import { listBrick, getBrick, delBrick, addBrick, updateBrick } from "@/api/device/brick"
-// 首先在脚本开头静态导入axios，避免动态导入失败
-import axios from 'axios'
+// 导入字典相关API
+import { 
+  listFixeddropdownitems, 
+  getFixeddropdownitems, 
+  addFixeddropdownitems, 
+  updateFixeddropdownitems, 
+  delFixeddropdownitems 
+} from "@/api/device/fixeddropdownitems"
 
+import { ref, reactive, getCurrentInstance, toRefs } from "vue"
+// 导入axios
+import axios from 'axios'
 
 const { proxy } = getCurrentInstance()
 
+// 字典相关响应式变量
+const dictOptions = reactive({
+  brickSpecOptions: [],    // 最大砖宽字典选项
+  styleOptions: [],        // 样式字典选项
+  workstationCountOptions: [] // 工位数字典选项
+})
+const dictDialog = reactive({
+  open: false,             // 字典管理弹窗开关
+  title: "",               // 弹窗标题（新增/修改字典）
+  form: {                  // 字典表单数据
+    itemId: null,
+    category: "",          // 字典分类（对应：最大砖宽/样式/工位数）
+    itemName: ""           // 字典值
+  },
+  rules: {                 // 字典表单校验
+    category: [{ required: true, message: "请选择字典分类", trigger: "blur" }],
+    itemName: [{ required: true, message: "请输入字典值", trigger: "blur" }]
+  },
+  currentCategory: "",     // 当前操作的字典分类
+  dictList: []             // 当前分类的字典列表（弹窗内显示）
+})
+
+// 原有变量
 const brickList = ref([])
 const open = ref(false)
 const loading = ref(true)
@@ -347,18 +523,117 @@ const data = reactive({
       { required: true, message: "物料描述不能为空", trigger: "blur" }
     ],
     brickSpec: [
-      { required: true, message: "最大砖宽不能为空", trigger: "blur" }
+      { required: true, message: "最大砖宽不能为空", trigger: "change" } // 改为change触发
     ],
     style: [
-      { required: true, message: "样式不能为空", trigger: "blur" }
+      { required: true, message: "样式不能为空", trigger: "change" } // 改为change触发
     ],
     workstationCount: [
-      { required: true, message: "工位数不能为空", trigger: "blur" }
+      { required: true, message: "工位数不能为空", trigger: "change" } // 改为change触发
     ],
   }
 })
 
 const { queryParams, form, rules } = toRefs(data)
+const { brickSpecOptions, styleOptions, workstationCountOptions } = toRefs(dictOptions)
+
+/** 加载字典选项 */
+function loadDictOptions() {
+  // 加载“最大砖宽”字典（Category=最大砖宽）
+  listFixeddropdownitems({ category: "最大砖宽" }).then(res => {
+    dictOptions.brickSpecOptions = res.rows.map(item => ({
+      label: item.itemName,
+      value: item.itemName
+    }));
+  });
+
+  // 加载“样式”字典（Category=样式）
+  listFixeddropdownitems({ category: "样式" }).then(res => {
+    dictOptions.styleOptions = res.rows.map(item => ({
+      label: item.itemName,
+      value: item.itemName
+    }));
+  });
+
+  // 加载“工位数”字典（Category=工位数）
+  listFixeddropdownitems({ category: "工位数" }).then(res => {
+    dictOptions.workstationCountOptions = res.rows.map(item => ({
+      label: item.itemName,
+      value: item.itemName
+    }));
+  });
+}
+
+/** 打开字典管理弹窗 */
+function openDictDialog(category) {
+  dictDialog.currentCategory = category;
+  dictDialog.form = { itemId: null, category: category, itemName: "" };
+  dictDialog.title = `管理${category}字典`;
+  dictDialog.open = true;
+  // 加载当前分类的字典列表
+  loadDictList(category);
+}
+
+/** 加载当前分类的字典列表 */
+function loadDictList(category) {
+  listFixeddropdownitems({ category: category }).then(res => {
+    dictDialog.dictList = res.rows;
+  });
+}
+
+/** 字典新增/修改提交 */
+function submitDictForm() {
+  proxy.$refs["dictRef"].validate(valid => {
+    if (valid) {
+      const dictData = {
+        itemId: dictDialog.form.itemId,
+        category: dictDialog.form.category,
+        itemName: dictDialog.form.itemName
+      };
+
+      // 新增字典
+      if (!dictData.itemId) {
+        addFixeddropdownitems(dictData).then(() => {
+          proxy.$modal.msgSuccess("字典新增成功");
+          dictDialog.open = false;
+          loadDictList(dictDialog.currentCategory);
+          loadDictOptions(); // 刷新下拉选项
+        });
+      } 
+      // 修改字典
+      else {
+        updateFixeddropdownitems(dictData).then(() => {
+          proxy.$modal.msgSuccess("字典修改成功");
+          dictDialog.open = false;
+          loadDictList(dictDialog.currentCategory);
+          loadDictOptions(); // 刷新下拉选项
+        });
+      }
+    }
+  });
+}
+
+/** 字典删除（修正后） */
+function handleDictDelete(item) {
+  proxy.$modal.confirm(`是否确认删除${item.itemName}？`).then(() => {
+    // 关键：传递数组[item.itemId]，与API要求的格式匹配
+    delFixeddropdownitems([item.itemId]).then(() => { 
+      proxy.$modal.msgSuccess("删除成功");
+      loadDictList(dictDialog.currentCategory);
+      loadDictOptions(); // 刷新下拉选项
+    });
+  }).catch(() => {});
+}
+
+/** 编辑字典 */
+function handleDictEdit(item) {
+  dictDialog.form = {
+    itemId: item.itemId,
+    category: item.category,
+    itemName: item.itemName
+  };
+  dictDialog.title = `修改${item.category}字典`;
+}
 
 /** 查询砖机列表 */
 function getList() {
@@ -482,5 +757,20 @@ function handleExport() {
   }, `brick_${new Date().getTime()}.xlsx`)
 }
 
+// 初始化：先加载字典，再加载砖机列表
+loadDictOptions();
 getList()
 </script>
+
+<style scoped>
+/* 补充样式 */
+.flex {
+  display: flex;
+}
+.items-center {
+  align-items: center;
+}
+.mb10 {
+  margin-bottom: 10px;
+}
+</style>

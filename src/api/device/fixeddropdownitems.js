@@ -10,9 +10,9 @@ export function listFixeddropdownitems(query) {
 }
 
 // 查询固定分类的下拉框字典详细
-export function getFixeddropdownitems(ItemId) {
+export function getFixeddropdownitems(itemId) {
   return request({
-    url: '/device/fixeddropdownitems/' + ItemId,
+    url: '/device/fixeddropdownitems/' + itemId,
     method: 'get'
   })
 }
@@ -35,10 +35,11 @@ export function updateFixeddropdownitems(data) {
   })
 }
 
-// 删除固定分类的下拉框字典
-export function delFixeddropdownitems(ItemId) {
+// api/device/fixeddropdownitems.js（修正后）
+export function delFixeddropdownitems(itemIds) {  // 直接接收itemIds数组
   return request({
-    url: '/device/fixeddropdownitems/' + ItemId,
-    method: 'delete'
+    // 关键：将itemIds数组通过URL路径传递，用逗号拼接
+    url: `/device/fixeddropdownitems/${itemIds.join(',')}`, 
+    method: 'delete'  // 无需params，参数已在URL中
   })
 }

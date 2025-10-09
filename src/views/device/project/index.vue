@@ -411,7 +411,7 @@
     <el-table-column label="用户ID" prop="userId" width="100" />
     <el-table-column label="用户名" width="150">
       <template #default="scope">
-        {{ scope.row.user_name || scope.row.userName }}
+        {{ scope.row.userName }}
       </template>
     </el-table-column>
     <el-table-column label="角色" width="100">
@@ -890,19 +890,23 @@ function goToProductionLineManagement(row) {
   });
 }
 
-// 获取用户列表
+// 获取用户列表 - 新增过滤当前用户逻辑
 function getUserList() {
   userLoading.value = true;
+  // 1. 获取当前登录用户ID（关键：用于过滤自己）
+  const userStore = useUserStore();
+  const currentUserId = userStore.id; 
+  
   listUser({ pageNum: 1, pageSize: 1000 }).then(response => {
     allAvailableUsers.value = response.rows;
     
-    // 不再使用remark，改用role字段
+    // 2. 筛选用户时排除当前登录用户（核心过滤逻辑）
     selectorUsers.value = response.rows.filter(user => 
-      user.remark === 'selector'
+      user.remark === 'selector' && user.userId !== currentUserId // 排除自己
     );
     
     quoterUsers.value = response.rows.filter(user => 
-      user.remark === 'quoter'
+      user.remark === 'quoter' && user.userId !== currentUserId // 排除自己
     );
     
     userLoading.value = false;
@@ -923,7 +927,7 @@ function getProjectMembers(projectId) {
       return {
         ...relation,
         // 不再使用remark，改用role字段
-        roleName: userInfo ? userInfo.role : 'unknown',
+        roleName: userInfo ? userInfo.remark : 'unknown',
         userName: userInfo ? (userInfo.user_name || userInfo.userName) : '未知用户'
       };
     });
@@ -958,7 +962,7 @@ function handleManageMembers(row) {
         return {
           ...relation,
           // 不再使用remark，改用role字段
-          roleName: userInfo ? userInfo.role : 'unknown',
+          roleName: userInfo ? userInfo.remark : 'unknown',
           userName: userInfo ? (userInfo.user_name || userInfo.userName) : '未知用户'
         };
       });
@@ -1057,7 +1061,6 @@ function saveProjectMembers() {
           const singleData = {
             mainProjectId: projectForm.value.mainProjectId,
             userId: member.userId,
-            joinTime: new Date()
           };
           return addRelation(singleData);
         });
@@ -1080,6 +1083,11 @@ function saveProjectMembers() {
 
 // 修复后的移除项目成员方法
 function removeProjectMember(member, fromViewDialog = false) {
+    if (member.isCreator) {
+    proxy.$message.warning('创建者无法被移除');
+    return;
+  }
+
   const projectId = fromViewDialog ? currentViewProjectId.value : projectForm.value.mainProjectId;
   if (!projectId) {
     proxy.$message.error('无法获取项目信息，操作失败');
@@ -1156,7 +1164,7 @@ function submitProjectForm() {
   proxy.$refs.projectRef.validate(valid => {
     if (valid) {
       if (projectForm.value.mainProjectId) {
-        // 编辑项目
+        // 编辑项目逻辑（保持不变）
         updateProject(projectForm.value).then(response => {
           proxy.$message.success('修改项目成功');
           
@@ -1174,7 +1182,7 @@ function submitProjectForm() {
           proxy.$message.error('修改项目失败');
         });
       } else {
-        // 新增项目
+        // 新增项目逻辑 - 新增自动添加创建者
         addProject(projectForm.value).then(response => {
           const newProjectId = response.data;
           
@@ -1183,17 +1191,26 @@ function submitProjectForm() {
           }
           
           projectForm.value.mainProjectId = newProjectId;
-          
           proxy.$message.success('新增项目成功');
-          
-          return getProjectList().then(processedList => {
-            if (projectMembers.value.length > 0) {
-              return saveProjectMembers().then(() => {
-                projectMemberCounts.value[newProjectId] = projectMembers.value.length;
-                return newProjectId;
-              });
-            }
-            projectMemberCounts.value[newProjectId] = 0;
+
+          // 3. 自动添加当前创建者到成员列表（核心逻辑）
+          const userStore = useUserStore();
+          const currentUser = {
+            userId: userStore.id, // 当前用户ID
+            userName: userStore.name, // 当前用户名
+          };
+
+          // 避免重复添加（防止异常场景）
+          const isCreatorExists = projectMembers.value.some(
+            member => member.userId === currentUser.userId
+          );
+          if (!isCreatorExists) {
+            projectMembers.value.unshift(currentUser); // 插入到列表首位
+          }
+
+          // 继续保存成员（此时包含创建者）
+          return saveProjectMembers().then(() => {
+            projectMemberCounts.value[newProjectId] = projectMembers.value.length;
             return newProjectId;
           });
         }).then(newProjectId => {

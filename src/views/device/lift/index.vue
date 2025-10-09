@@ -25,13 +25,21 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="最大砖厚" prop="brickThickness">
-        <el-input
+      <!-- 最大砖厚改为下拉选择 -->
+      <el-form-item label="最大砖厚度" prop="brickThickness">
+        <el-select
           v-model="queryParams.brickThickness"
-          placeholder="请输入最大砖厚度(mm)"
+          placeholder="请选择最大砖厚"
           clearable
-          @keyup.enter="handleQuery"
-        />
+          style="width: 180px"
+        >
+          <el-option
+            v-for="item in brickThicknessOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          ></el-option>
+        </el-select>
       </el-form-item>
       <el-form-item label="线架宽度" prop="frameWidth">
         <el-input
@@ -199,8 +207,30 @@
         <el-form-item label="砖宽范围" prop="brickWidthRange">
           <el-input v-model="form.brickWidthRange" placeholder="请输入适用砖宽度范围(mm)" />
         </el-form-item>
+        <!-- 砖厚度改为下拉选择+管理按钮 -->
         <el-form-item label="砖厚度" prop="brickThickness">
-          <el-input v-model="form.brickThickness" placeholder="请输入适用砖厚度(mm)" />
+          <div class="flex items-center">
+            <el-select
+              v-model="form.brickThickness"
+              placeholder="请选择砖厚度"
+              style="width: 320px"
+            >
+              <el-option
+                v-for="item in brickThicknessOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              ></el-option>
+            </el-select>
+            <el-button
+              type="text"
+              icon="Setting"
+              @click="openDictDialog('最大砖厚度')"
+              style="margin-left: 10px"
+            >
+              管理
+            </el-button>
+          </div>
         </el-form-item>
         <el-form-item label="线架宽度" prop="frameWidth">
           <el-input v-model="form.frameWidth" placeholder="请输入安装适用线架宽度(mm)" />
@@ -243,14 +273,97 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 字典管理弹窗 -->
+    <el-dialog :title="dictDialog.title" v-model="dictDialog.open" width="500px" append-to-body>
+      <!-- 字典表单 -->
+      <el-form ref="dictRef" :model="dictDialog.form" :rules="dictDialog.rules" label-width="80px" class="mb10">
+        <el-form-item label="参数类型" prop="category">
+          <el-select
+            v-model="dictDialog.form.category"
+            placeholder="请选择参数类型"
+            :disabled="true"
+          >
+            <el-option label="最大砖厚度" value="最大砖厚度"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="字典值" prop="itemName">
+          <el-input
+            v-model="dictDialog.form.itemName"
+            placeholder="请输入砖厚度（如：50mm、60mm）"
+          ></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="submitDictForm">保存</el-button>
+          <el-button @click="dictDialog.open = false">取消</el-button>
+        </el-form-item>
+      </el-form>
+
+      <!-- 字典列表表格 -->
+      <el-table :data="dictDialog.dictList" border size="mini" style="width: 100%">
+        <el-table-column label="字典值" prop="itemName" align="center"></el-table-column>
+        <el-table-column label="操作" align="center" width="120">
+          <template #default="scope">
+            <el-button
+              type="text"
+              icon="Edit"
+              size="mini"
+              @click="handleDictEdit(scope.row)"
+            >
+              修改
+            </el-button>
+            <el-button
+              type="text"
+              icon="Delete"
+              size="mini"
+              @click="handleDictDelete(scope.row)"
+              style="color: #f56c6c"
+            >
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
 <script setup name="Lift">
 import { listLift, getLift, delLift, addLift, updateLift } from "@/api/device/lift"
+// 导入字典相关API
+import { 
+  listFixeddropdownitems, 
+  getFixeddropdownitems, 
+  addFixeddropdownitems, 
+  updateFixeddropdownitems, 
+  delFixeddropdownitems 
+} from "@/api/device/fixeddropdownitems"
+
+import { ref, reactive, getCurrentInstance, toRefs } from "vue"
 
 const { proxy } = getCurrentInstance()
 
+// 字典相关响应式变量
+const dictOptions = reactive({
+  brickThicknessOptions: []  // 砖厚度字典选项
+})
+const dictDialog = reactive({
+  open: false,             // 字典管理弹窗开关
+  title: "",               // 弹窗标题（新增/修改字典）
+  form: {                  // 字典表单数据
+    itemId: null,
+    category: "",          // 字典分类（砖厚度）
+    itemName: ""           // 字典值
+  },
+  rules: {                 // 字典表单校验
+    category: [{ required: true, message: "请选择字典分类", trigger: "blur" }],
+    itemName: [{ required: true, message: "请输入字典值", trigger: "blur" }]
+  },
+  currentCategory: "",     // 当前操作的字典分类
+  dictList: []             // 当前分类的字典列表（弹窗内显示）
+})
+
+// 原有变量
 const liftList = ref([])
 const open = ref(false)
 const loading = ref(true)
@@ -290,10 +403,10 @@ const data = reactive({
       { required: true, message: "物料描述不能为空", trigger: "blur" }
     ],
     brickWidthRange: [
-      { required: true, message: "砖宽范围", trigger: "blur" }
+      { required: true, message: "砖宽范围不能为空", trigger: "blur" }
     ],
     brickThickness: [
-      { required: true, message: "砖厚度不能为空", trigger: "blur" }
+      { required: true, message: "砖厚度不能为空", trigger: "change" } // 改为change触发
     ],
     plateLength: [
       { required: true, message: "托砖板长不能为空", trigger: "blur" }
@@ -302,6 +415,89 @@ const data = reactive({
 })
 
 const { queryParams, form, rules } = toRefs(data)
+const { brickThicknessOptions } = toRefs(dictOptions)
+
+/** 加载字典选项 */
+function loadDictOptions() {
+  // 加载“砖厚度”字典（Category=砖厚度）
+  listFixeddropdownitems({ category: "最大砖厚度" }).then(res => {
+    dictOptions.brickThicknessOptions = res.rows.map(item => ({
+      label: item.itemName,
+      value: item.itemName
+    }));
+  });
+}
+
+/** 打开字典管理弹窗 */
+function openDictDialog(category) {
+  dictDialog.currentCategory = category;
+  dictDialog.form = { itemId: null, category: category, itemName: "" };
+  dictDialog.title = `管理${category}字典`;
+  dictDialog.open = true;
+  // 加载当前分类的字典列表
+  loadDictList(category);
+}
+
+/** 加载当前分类的字典列表 */
+function loadDictList(category) {
+  listFixeddropdownitems({ category: category }).then(res => {
+    dictDialog.dictList = res.rows;
+  });
+}
+
+/** 字典新增/修改提交 */
+function submitDictForm() {
+  proxy.$refs["dictRef"].validate(valid => {
+    if (valid) {
+      const dictData = {
+        itemId: dictDialog.form.itemId,
+        category: dictDialog.form.category,
+        itemName: dictDialog.form.itemName
+      };
+
+      // 新增字典
+      if (!dictData.itemId) {
+        addFixeddropdownitems(dictData).then(() => {
+          proxy.$modal.msgSuccess("字典新增成功");
+          dictDialog.open = false;
+          loadDictList(dictDialog.currentCategory);
+          loadDictOptions(); // 刷新下拉选项
+        });
+      } 
+      // 修改字典
+      else {
+        updateFixeddropdownitems(dictData).then(() => {
+          proxy.$modal.msgSuccess("字典修改成功");
+          dictDialog.open = false;
+          loadDictList(dictDialog.currentCategory);
+          loadDictOptions(); // 刷新下拉选项
+        });
+      }
+    }
+  });
+}
+
+/** 字典删除 */
+function handleDictDelete(item) {
+  proxy.$modal.confirm(`是否确认删除${item.itemName}？`).then(() => {
+    // 传递数组[item.itemId]，与API要求的格式匹配
+    delFixeddropdownitems([item.itemId]).then(() => { 
+      proxy.$modal.msgSuccess("删除成功");
+      loadDictList(dictDialog.currentCategory);
+      loadDictOptions(); // 刷新下拉选项
+    });
+  }).catch(() => {});
+}
+
+/** 编辑字典 */
+function handleDictEdit(item) {
+  dictDialog.form = {
+    itemId: item.itemId,
+    category: item.category,
+    itemName: item.itemName
+  };
+  dictDialog.title = `修改${item.category}字典`;
+}
 
 /** 查询拍齐顶升列表 */
 function getList() {
@@ -418,5 +614,20 @@ function handleExport() {
   }, `lift_${new Date().getTime()}.xlsx`)
 }
 
+// 初始化：先加载字典，再加载拍齐顶升列表
+loadDictOptions();
 getList()
 </script>
+
+<style scoped>
+/* 补充样式 */
+.flex {
+  display: flex;
+}
+.items-center {
+  align-items: center;
+}
+.mb10 {
+  margin-bottom: 10px;
+}
+</style>

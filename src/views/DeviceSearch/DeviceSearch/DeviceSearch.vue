@@ -52,21 +52,32 @@
             <el-form ref="formRef" :model="form" label-width="100px" size="small">
               <el-form-item label="最大砖宽">
                 <el-select v-model="form.brickSpec" placeholder="请选择">
-                  <el-option label="900" value="900"></el-option>
-                  <el-option label="1600" value="1600"></el-option>
-                  <el-option label="1200" value="1200"></el-option>
+                  <el-option 
+                    v-for="item in dictOptions.brickSpecOptions" 
+                    :key="item.value" 
+                    :label="item.label" 
+                    :value="item.value"
+                  ></el-option>
                 </el-select>
               </el-form-item>
               <el-form-item label="样式">
                 <el-select v-model="form.style" placeholder="请选择">
-                  <el-option label="一体式" value="一体式"></el-option>
-                  <el-option label="分体式" value="分体式"></el-option>
+                  <el-option 
+                    v-for="item in dictOptions.styleOptions" 
+                    :key="item.value" 
+                    :label="item.label" 
+                    :value="item.value"
+                  ></el-option>
                 </el-select>
               </el-form-item>
               <el-form-item label="工位数">
                 <el-select v-model="form.workstationCount" placeholder="请选择">
-                  <el-option label="2" value="2"></el-option>
-                  <el-option label="3" value="3"></el-option>
+                  <el-option 
+                    v-for="item in dictOptions.workstationCountOptions" 
+                    :key="item.value" 
+                    :label="item.label" 
+                    :value="item.value"
+                  ></el-option>
                 </el-select>
               </el-form-item>
             </el-form>
@@ -80,25 +91,34 @@
               <el-form ref="transferFormRef" :model="transferForm" label-width="100px" size="small">
                 <el-form-item label="摆渡坑宽">
                   <el-select v-model="transferForm.ferryPitWidth"  placeholder="请选择">
-                    <el-option label="4500" value="4500"></el-option>
-                    <el-option label="4800" value="4800"></el-option>
-                    <el-option label="5500" value="5500"></el-option>
+                    <el-option 
+                      v-for="item in dictOptions.ferryPitWidthOptions" 
+                      :key="item.value" 
+                      :label="item.label" 
+                      :value="item.value"
+                    ></el-option>
                   </el-select>
                 </el-form-item>
                 
                 <el-form-item label="摆渡车关键特征">
                   <el-select v-model="transferForm.ferryKeyFeature" placeholder="请选择">
-                    <el-option label="常规" value="常规"></el-option>
-                    <el-option label="鱼骨" value="鱼骨"></el-option>
-                    <el-option label="升降摆渡" value="升降摆渡"></el-option>
+                    <el-option 
+                      v-for="item in dictOptions.ferryKeyFeatureOptions" 
+                      :key="item.value" 
+                      :label="item.label" 
+                      :value="item.value"
+                    ></el-option>
                   </el-select>
                 </el-form-item>
                 
                 <el-form-item label="最大砖宽度">
                   <el-select v-model="transferForm.maxBrickWidth" placeholder="请选择">
-                    <el-option label="非液压升降摆渡" value="非液压升降摆渡"></el-option>
-                    <el-option label="900" value="900"></el-option>
-                    <el-option label="1200" value="1200"></el-option>
+                    <el-option 
+                      v-for="item in dictOptions.maxBrickWidthOptions" 
+                      :key="item.value" 
+                      :label="item.label" 
+                      :value="item.value"
+                    ></el-option>
                   </el-select>
                 </el-form-item>
                 
@@ -117,22 +137,34 @@
               <el-form ref="transportFormRef" :model="transportForm" label-width="100px" size="small">
                 <el-form-item label="摆渡坑宽">
                   <el-select v-model="transportForm.pitWidth"  placeholder="请选择">
-                    <el-option label="4500" value="4500"></el-option>
-                    <el-option label="5500" value="5500"></el-option>
+                    <el-option 
+                      v-for="item in dictOptions.transportPitWidthOptions" 
+                      :key="item.value" 
+                      :label="item.label" 
+                      :value="item.value"
+                    ></el-option>
                   </el-select>
                 </el-form-item>
                 
                 <el-form-item label="支架形式">
                   <el-select v-model="transportForm.supportType" placeholder="请选择">
-                    <el-option label="常规" value="常规"></el-option>
-                    <el-option label="鱼骨" value="鱼骨"></el-option>
+                    <el-option 
+                      v-for="item in dictOptions.supportTypeOptions" 
+                      :key="item.value" 
+                      :label="item.label" 
+                      :value="item.value"
+                    ></el-option>
                   </el-select>
                 </el-form-item>
                 
                 <el-form-item label="电力形式">
                   <el-select v-model="transportForm.powerType" placeholder="请选择">
-                    <el-option label="交流" value="交流"></el-option>
-                    <el-option label="直流" value="直流"></el-option>
+                    <el-option 
+                      v-for="item in dictOptions.powerTypeOptions" 
+                      :key="item.value" 
+                      :label="item.label" 
+                      :value="item.value"
+                    ></el-option>
                   </el-select>
                 </el-form-item>
               </el-form>
@@ -144,9 +176,12 @@
               <el-form ref="liftFormRef" :model="liftForm" label-width="100px" size="small">    
                 <el-form-item label="最大砖厚度">
                   <el-select v-model="liftForm.maxBrickThickness" placeholder="请选择">
-                    <el-option label="15" value="15"></el-option>
-                    <el-option label="20" value="20"></el-option>
-                    <el-option label="48" value="48"></el-option>
+                    <el-option 
+                      v-for="item in dictOptions.maxBrickThicknessOptions" 
+                      :key="item.value" 
+                      :label="item.label" 
+                      :value="item.value"
+                    ></el-option>
                   </el-select>
                 </el-form-item>
               </el-form>
@@ -796,6 +831,8 @@ import { exportSelectedDevices, downloadExportFile } from "../../../api/device/e
 // 导入技术附件和报价单导出API
 import { exportEquipmentTechnicalAttachment } from '@/api/device/wordExport'
 import { exportQuotation } from '@/api/device/exportQuotation'
+// 导入字典相关API
+import { listFixeddropdownitems } from "@/api/device/fixeddropdownitems"
 import { ElMessage, ElLoading, ElEmpty } from 'element-plus';
 import { useRoute } from 'vue-router'
 
@@ -832,6 +869,20 @@ const brickSpecs = ref([
   { spec: '800×1600', quantity: 0, code: 8 }, // 对应brickCount8
   { spec: '900×1800', quantity: 0, code: 9 }  // 对应brickCount9
 ]);
+
+// 字典相关响应式变量 - 新增
+const dictOptions = reactive({
+  brickSpecOptions: [],              // 最大砖宽字典选项
+  styleOptions: [],                  // 样式字典选项
+  workstationCountOptions: [],       // 工位数字典选项
+  ferryPitWidthOptions: [],          // 摆渡坑宽字典选项
+  ferryKeyFeatureOptions: [],        // 摆渡车关键特征字典选项
+  maxBrickWidthOptions: [],          // 最大砖宽度字典选项
+  transportPitWidthOptions: [],      // 运输车坑宽字典选项
+  supportTypeOptions: [],            // 支架形式字典选项
+  powerTypeOptions: [],              // 电力形式字典选项
+  maxBrickThicknessOptions: []       // 最大砖厚度字典选项
+});
 
 // 表单数据 - 包含所有设备类型的参数
 const form = reactive({
@@ -932,6 +983,89 @@ watch(currentStep, (newVal, oldVal) => {
     }
   }
 });
+
+/** 加载字典选项 - 新增方法 */
+function loadDictOptions() {
+  // 加载"最大砖宽"字典
+  listFixeddropdownitems({ category: "最大砖宽" }).then(res => {
+    dictOptions.brickSpecOptions = res.rows.map(item => ({
+      label: item.itemName,
+      value: item.itemName
+    }));
+  });
+
+  // 加载"样式"字典
+  listFixeddropdownitems({ category: "样式" }).then(res => {
+    dictOptions.styleOptions = res.rows.map(item => ({
+      label: item.itemName,
+      value: item.itemName
+    }));
+  });
+
+  // 加载"工位数"字典
+  listFixeddropdownitems({ category: "工位数" }).then(res => {
+    dictOptions.workstationCountOptions = res.rows.map(item => ({
+      label: item.itemName,
+      value: item.itemName
+    }));
+  });
+
+  // 加载"摆渡坑宽"字典
+  listFixeddropdownitems({ category: "摆渡坑宽" }).then(res => {
+    dictOptions.ferryPitWidthOptions = res.rows.map(item => ({
+      label: item.itemName,
+      value: item.itemName
+    }));
+  });
+
+  // 加载"摆渡车关键特征"字典
+  listFixeddropdownitems({ category: "摆渡车关键特征" }).then(res => {
+    dictOptions.ferryKeyFeatureOptions = res.rows.map(item => ({
+      label: item.itemName,
+      value: item.itemName
+    }));
+  });
+
+  // 加载"最大砖宽度"字典
+  listFixeddropdownitems({ category: "最大砖宽度" }).then(res => {
+    dictOptions.maxBrickWidthOptions = res.rows.map(item => ({
+      label: item.itemName,
+      value: item.itemName
+    }));
+  });
+
+  // 加载"运输车坑宽"字典
+  listFixeddropdownitems({ category: "坑宽" }).then(res => {
+    dictOptions.transportPitWidthOptions = res.rows.map(item => ({
+      label: item.itemName,
+      value: item.itemName
+    }));
+  });
+
+  // 加载"支架形式"字典
+  listFixeddropdownitems({ category: "支架形式" }).then(res => {
+    dictOptions.supportTypeOptions = res.rows.map(item => ({
+      label: item.itemName,
+      value: item.itemName
+    }));
+  });
+
+  // 加载"电力形式"字典
+  listFixeddropdownitems({ category: "电力形式" }).then(res => {
+    dictOptions.powerTypeOptions = res.rows.map(item => ({
+      label: item.itemName,
+      value: item.itemName
+    }));
+  });
+
+  // 加载"最大砖厚度"字典
+  listFixeddropdownitems({ category: "最大砖厚度" }).then(res => {
+    dictOptions.maxBrickThicknessOptions = res.rows.map(item => ({
+      label: item.itemName,
+      value: item.itemName
+    }));
+  });
+}
 
 // 步骤导航方法
 const nextStep = async () => {
@@ -1653,6 +1787,9 @@ const loadSelectionParams = async (recordId) => {
 
 // 初始化逻辑
 onMounted(() => {
+  // 加载字典数据
+  loadDictOptions();
+  
   const routeWatch = watch(
     () => [route.query.productionLineId, route.query.recordId, route.query.status],
     ([newProductionLineId, newRecordId, newStatus]) => {
@@ -2190,4 +2327,3 @@ h4 {
   100% { transform: rotate(360deg); }
 }
 </style>
-    

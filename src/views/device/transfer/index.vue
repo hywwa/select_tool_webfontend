@@ -17,29 +17,53 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="坑宽" prop="ferryPitWidth">
-        <el-input
+      <!-- 摆渡坑宽改为下拉选择 -->
+      <el-form-item label="摆渡坑宽" prop="ferryPitWidth">
+        <el-select
           v-model="queryParams.ferryPitWidth"
-          placeholder="请输入摆渡坑宽度(mm)"
+          placeholder="请选择摆渡坑宽"
           clearable
-          @keyup.enter="handleQuery"
-        />
+          style="width: 180px"
+        >
+          <el-option
+            v-for="item in ferryPitWidthOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          ></el-option>
+        </el-select>
       </el-form-item>
+      <!-- 摆渡车关键特征改为下拉选择 -->
       <el-form-item label="关键特征" prop="ferryKeyFeature">
-        <el-input
+        <el-select
           v-model="queryParams.ferryKeyFeature"
-          placeholder="请输入摆渡车关键特征"
+          placeholder="请选择关键特征"
           clearable
-          @keyup.enter="handleQuery"
-        />
+          style="width: 180px"
+        >
+          <el-option
+            v-for="item in ferryKeyFeatureOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          ></el-option>
+        </el-select>
       </el-form-item>
+      <!-- 最大砖宽度改为下拉选择 -->
       <el-form-item label="最大砖宽" prop="maxBrickWidth">
-        <el-input
+        <el-select
           v-model="queryParams.maxBrickWidth"
-          placeholder="请输入使用最大砖宽度(mm)"
+          placeholder="请选择最大砖宽"
           clearable
-          @keyup.enter="handleQuery"
-        />
+          style="width: 180px"
+        >
+          <el-option
+            v-for="item in maxBrickWidthOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          ></el-option>
+        </el-select>
       </el-form-item>
       <el-form-item label="摆渡车长" prop="ferryLength">
         <el-input
@@ -221,14 +245,80 @@
         <el-form-item label="物料描述" prop="materialDescription">
           <el-input v-model="form.materialDescription" placeholder="请输入物料描述" />
         </el-form-item>
+        <!-- 摆渡坑宽改为下拉选择+管理按钮 -->
         <el-form-item label="摆渡坑宽" prop="ferryPitWidth">
-          <el-input v-model="form.ferryPitWidth" placeholder="请输入摆渡坑宽度(mm)" />
+          <div class="flex items-center">
+            <el-select
+              v-model="form.ferryPitWidth"
+              placeholder="请选择摆渡坑宽"
+              style="width: 320px"
+            >
+              <el-option
+                v-for="item in ferryPitWidthOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              ></el-option>
+            </el-select>
+            <el-button
+              type="text"
+              icon="Setting"
+              @click="openDictDialog('摆渡坑宽')"
+              style="margin-left: 10px"
+            >
+              管理
+            </el-button>
+          </div>
         </el-form-item>
+        <!-- 摆渡车关键特征改为下拉选择+管理按钮 -->
         <el-form-item label="关键特征" prop="ferryKeyFeature">
-          <el-input v-model="form.ferryKeyFeature" placeholder="请输入摆渡车关键特征" />
+          <div class="flex items-center">
+            <el-select
+              v-model="form.ferryKeyFeature"
+              placeholder="请选择关键特征"
+              style="width: 320px"
+            >
+              <el-option
+                v-for="item in ferryKeyFeatureOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              ></el-option>
+            </el-select>
+            <el-button
+              type="text"
+              icon="Setting"
+              @click="openDictDialog('摆渡车关键特征')"
+              style="margin-left: 10px"
+            >
+              管理
+            </el-button>
+          </div>
         </el-form-item>
+        <!-- 最大砖宽度改为下拉选择+管理按钮 -->
         <el-form-item label="最大砖宽" prop="maxBrickWidth">
-          <el-input v-model="form.maxBrickWidth" placeholder="请输入使用最大砖宽度(mm)" />
+          <div class="flex items-center">
+            <el-select
+              v-model="form.maxBrickWidth"
+              placeholder="请选择最大砖宽"
+              style="width: 320px"
+            >
+              <el-option
+                v-for="item in maxBrickWidthOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              ></el-option>
+            </el-select>
+            <el-button
+              type="text"
+              icon="Setting"
+              @click="openDictDialog('最大砖宽度')"
+              style="margin-left: 10px"
+            >
+              管理
+            </el-button>
+          </div>
         </el-form-item>
         <el-form-item label="摆渡车长" prop="ferryLength">
           <el-input v-model="form.ferryLength" placeholder="请输入摆渡车长度(mm)" />
@@ -271,14 +361,101 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 字典管理弹窗 -->
+    <el-dialog :title="dictDialog.title" v-model="dictDialog.open" width="500px" append-to-body>
+      <!-- 字典表单 -->
+      <el-form ref="dictRef" :model="dictDialog.form" :rules="dictDialog.rules" label-width="80px" class="mb10">
+        <el-form-item label="参数类型" prop="category">
+          <el-select
+            v-model="dictDialog.form.category"
+            placeholder="请选择参数类型"
+            :disabled="true"
+          >
+            <el-option label="摆渡坑宽" value="摆渡坑宽"></el-option>
+            <el-option label="摆渡车关键特征" value="摆渡车关键特征"></el-option>
+            <el-option label="最大砖宽度" value="最大砖宽度"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="字典值" prop="itemName">
+          <el-input
+            v-model="dictDialog.form.itemName"
+            placeholder="请输入字典值"
+          ></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="submitDictForm">保存</el-button>
+          <el-button @click="dictDialog.open = false">取消</el-button>
+        </el-form-item>
+      </el-form>
+
+      <!-- 字典列表表格 -->
+      <el-table :data="dictDialog.dictList" border size="mini" style="width: 100%">
+        <el-table-column label="字典值" prop="itemName" align="center"></el-table-column>
+        <el-table-column label="操作" align="center" width="120">
+          <template #default="scope">
+            <el-button
+              type="text"
+              icon="Edit"
+              size="mini"
+              @click="handleDictEdit(scope.row)"
+            >
+              修改
+            </el-button>
+            <el-button
+              type="text"
+              icon="Delete"
+              size="mini"
+              @click="handleDictDelete(scope.row)"
+              style="color: #f56c6c"
+            >
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
 <script setup name="Transfer">
 import { listTransfer, getTransfer, delTransfer, addTransfer, updateTransfer } from "@/api/device/transfer"
+// 导入字典相关API
+import { 
+  listFixeddropdownitems, 
+  getFixeddropdownitems, 
+  addFixeddropdownitems, 
+  updateFixeddropdownitems, 
+  delFixeddropdownitems 
+} from "@/api/device/fixeddropdownitems"
+
+import { ref, reactive, getCurrentInstance, toRefs } from "vue"
 
 const { proxy } = getCurrentInstance()
 
+// 字典相关响应式变量
+const dictOptions = reactive({
+  ferryPitWidthOptions: [],    // 摆渡坑宽字典选项
+  ferryKeyFeatureOptions: [],  // 摆渡车关键特征字典选项
+  maxBrickWidthOptions: []     // 最大砖宽度字典选项
+})
+const dictDialog = reactive({
+  open: false,             // 字典管理弹窗开关
+  title: "",               // 弹窗标题（新增/修改字典）
+  form: {                  // 字典表单数据
+    itemId: null,
+    category: "",          // 字典分类
+    itemName: ""           // 字典值
+  },
+  rules: {                 // 字典表单校验
+    category: [{ required: true, message: "请选择字典分类", trigger: "blur" }],
+    itemName: [{ required: true, message: "请输入字典值", trigger: "blur" }]
+  },
+  currentCategory: "",     // 当前操作的字典分类
+  dictList: []             // 当前分类的字典列表（弹窗内显示）
+})
+
+// 原有变量
 const transferList = ref([])
 const open = ref(false)
 const loading = ref(true)
@@ -319,13 +496,13 @@ const data = reactive({
       { required: true, message: "物料描述不能为空", trigger: "blur" }
     ],
     ferryPitWidth: [
-      { required: true, message: "摆渡坑宽不能为空", trigger: "blur" }
+      { required: true, message: "摆渡坑宽不能为空", trigger: "change" }
     ],
     ferryKeyFeature: [
-      { required: true, message: "摆渡车关键特征不能为空", trigger: "blur" }
+      { required: true, message: "摆渡车关键特征不能为空", trigger: "change" }
     ],
     maxBrickWidth: [
-      { required: true, message: "最大砖宽不能为空", trigger: "blur" }
+      { required: true, message: "最大砖宽不能为空", trigger: "change" }
     ],
     hasPit: [
       { required: true, message: "有无坑不能为空", trigger: "blur" }
@@ -334,6 +511,105 @@ const data = reactive({
 })
 
 const { queryParams, form, rules } = toRefs(data)
+const { ferryPitWidthOptions, ferryKeyFeatureOptions, maxBrickWidthOptions } = toRefs(dictOptions)
+
+/** 加载字典选项 */
+function loadDictOptions() {
+  // 加载“摆渡坑宽”字典
+  listFixeddropdownitems({ category: "摆渡坑宽" }).then(res => {
+    dictOptions.ferryPitWidthOptions = res.rows.map(item => ({
+      label: item.itemName,
+      value: item.itemName
+    }));
+  });
+
+  // 加载“摆渡车关键特征”字典
+  listFixeddropdownitems({ category: "摆渡车关键特征" }).then(res => {
+    dictOptions.ferryKeyFeatureOptions = res.rows.map(item => ({
+      label: item.itemName,
+      value: item.itemName
+    }));
+  });
+
+  // 加载“最大砖宽度”字典
+  listFixeddropdownitems({ category: "最大砖宽度" }).then(res => {
+    dictOptions.maxBrickWidthOptions = res.rows.map(item => ({
+      label: item.itemName,
+      value: item.itemName
+    }));
+  });
+}
+
+/** 打开字典管理弹窗 */
+function openDictDialog(category) {
+  dictDialog.currentCategory = category;
+  dictDialog.form = { itemId: null, category: category, itemName: "" };
+  dictDialog.title = `管理${category}字典`;
+  dictDialog.open = true;
+  // 加载当前分类的字典列表
+  loadDictList(category);
+}
+
+/** 加载当前分类的字典列表 */
+function loadDictList(category) {
+  listFixeddropdownitems({ category: category }).then(res => {
+    dictDialog.dictList = res.rows;
+  });
+}
+
+/** 字典新增/修改提交 */
+function submitDictForm() {
+  proxy.$refs["dictRef"].validate(valid => {
+    if (valid) {
+      const dictData = {
+        itemId: dictDialog.form.itemId,
+        category: dictDialog.form.category,
+        itemName: dictDialog.form.itemName
+      };
+
+      // 新增字典
+      if (!dictData.itemId) {
+        addFixeddropdownitems(dictData).then(() => {
+          proxy.$modal.msgSuccess("字典新增成功");
+          dictDialog.open = false;
+          loadDictList(dictDialog.currentCategory);
+          loadDictOptions(); // 刷新下拉选项
+        });
+      } 
+      // 修改字典
+      else {
+        updateFixeddropdownitems(dictData).then(() => {
+          proxy.$modal.msgSuccess("字典修改成功");
+          dictDialog.open = false;
+          loadDictList(dictDialog.currentCategory);
+          loadDictOptions(); // 刷新下拉选项
+        });
+      }
+    }
+  });
+}
+
+/** 字典删除 */
+function handleDictDelete(item) {
+  proxy.$modal.confirm(`是否确认删除${item.itemName}？`).then(() => {
+    // 传递数组[item.itemId]，与API要求的格式匹配
+    delFixeddropdownitems([item.itemId]).then(() => { 
+      proxy.$modal.msgSuccess("删除成功");
+      loadDictList(dictDialog.currentCategory);
+      loadDictOptions(); // 刷新下拉选项
+    });
+  }).catch(() => {});
+}
+
+/** 编辑字典 */
+function handleDictEdit(item) {
+  dictDialog.form = {
+    itemId: item.itemId,
+    category: item.category,
+    itemName: item.itemName
+  };
+  dictDialog.title = `修改${item.category}字典`;
+}
 
 /** 查询摆渡车列表 */
 function getList() {
@@ -451,5 +727,20 @@ function handleExport() {
   }, `transfer_${new Date().getTime()}.xlsx`)
 }
 
+// 初始化：先加载字典，再加载摆渡车列表
+loadDictOptions();
 getList()
 </script>
+
+<style scoped>
+/* 补充样式 */
+.flex {
+  display: flex;
+}
+.items-center {
+  align-items: center;
+}
+.mb10 {
+  margin-bottom: 10px;
+}
+</style>
