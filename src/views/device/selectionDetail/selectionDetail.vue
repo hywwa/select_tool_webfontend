@@ -35,12 +35,26 @@
           <div class="info-value">{{ parseTime(productionLineInfo.lastModifyTime) || '-' }}</div>
         </div>
         <div class="info-item">
-          <div class="info-label">报价状态</div>
-          <div class="info-value">
-            <el-tag :type="productionLineInfo.isQuoted === 1 ? 'success' : 'info'">
-              {{ productionLineInfo.isQuoted === 1 ? '已完成' : '未完成' }}
-            </el-tag>
-          </div>
+        <div class="info-label">报价状态</div>
+<div class="info-value">
+  <el-tag 
+    :type="
+      productionLineInfo.isQuoted === 1 
+        ? 'success' 
+        : productionLineInfo.isQuoted === 2 
+          ? 'warning' 
+          : 'info'
+    "
+  >
+    {{ 
+      productionLineInfo.isQuoted === 1 
+        ? '报价完成' 
+        : productionLineInfo.isQuoted === 2 
+          ? '选型完成' 
+          : '未报价'
+    }}
+  </el-tag>
+</div>
         </div>
         <div class="info-item">
           <div class="info-label">项目状态</div>
@@ -107,6 +121,14 @@
             <div class="param-item">
               <div class="param-label">工位数</div>
               <div class="param-value">{{ selectionParams.workstationCount || '-' }}</div>
+            </div>
+            <div class="param-item">
+              <div class="param-label">移砖行程</div>
+              <div class="param-value">{{ selectionParams.travelDistance || '-' }}</div>
+            </div>
+            <div class="param-item">
+              <div class="param-label">叉砖口宽度</div>
+              <div class="param-value">{{ selectionParams.forkOpening || '-' }}</div>
             </div>
           </div>
         </div>

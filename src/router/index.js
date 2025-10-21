@@ -72,24 +72,6 @@ export const constantRoutes = [
     ]
   },
 
-   // -------------------------- 新增：导出测试页面路由 --------------------------
-  {
-    path: '',
-    component: Layout, // 继承主布局（显示侧边栏、顶部导航）
-    children: [
-      {
-        path: '/export-test', // 访问路径：http://localhost:端口/export-test
-        name: 'ExportTest', // 路由唯一名称（必须填写，用于keep-alive）
-        component: () => import('@/views/ExportTest.vue'), // 懒加载组件
-        meta: { 
-          title: '导出测试', // 侧边栏菜单名称、面包屑名称
-          icon: 'download', // 侧边栏图标（使用现有svg图标，如"download"）
-          noCache: false // 是否缓存组件（默认false，支持keep-alive）
-        }
-      }
-    ]
-  },
-  // --------------------------------------------------------------------------
 
   // 新增：设备选择-产线路由（隐藏）
   {
@@ -171,20 +153,7 @@ export const dynamicRoutes = [
       }
     ]
   },
-  {
-    path: '/monitor/job-log',
-    component: Layout,
-    hidden: true,
-    permissions: ['monitor:job:list'],
-    children: [
-      {
-        path: 'index/:jobId(\\d+)',
-        component: () => import('@/views/monitor/job/log'),
-        name: 'JobLog',
-        meta: { title: '调度日志', activeMenu: '/monitor/job' }
-      }
-    ]
-  },
+  
   {
     path: '/tool/gen-edit',
     component: Layout,

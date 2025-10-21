@@ -130,13 +130,17 @@
         />
       </el-form-item>
       <el-form-item label="电气控制" prop="hasControl">
-        <el-input
-          v-model="queryParams.hasControl"
-          placeholder="请输入有电气控制"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
+  <el-select
+    v-model="queryParams.hasControl"
+    placeholder="请选择是否有电气控制"
+    clearable
+    style="width: 180px"
+    @change="handleQuery"
+  >
+    <el-option label="是" value="是"></el-option>
+    <el-option label="否" value="否"></el-option>
+  </el-select>
+</el-form-item>
       <el-form-item label="备注" prop="notes">
         <el-input
           v-model="queryParams.notes"
@@ -222,7 +226,11 @@
       <el-table-column label="行走电机" align="center" prop="motor" />
       <el-table-column label="液压功率(KW)" align="center" prop="hydraulicPower" />
       <el-table-column label="减速机速比" align="center" prop="reducerRatio" />
-      <el-table-column label="有电气控制" align="center" prop="hasControl" />
+      <el-table-column label="有电气控制" align="center">
+  <template #default="scope">
+    {{ scope.row.hasControl === 1 ? '是' : '否' }}
+  </template>
+</el-table-column>
       <el-table-column label="备注" align="center" prop="notes" width="200"/>
       <el-table-column label="使用项目" align="center" prop="projects" />
      
@@ -345,8 +353,15 @@
           <el-input v-model="form.reducerRatio" placeholder="请输入减速机速比" />
         </el-form-item>
         <el-form-item label="有电气控制" prop="hasControl">
-          <el-input v-model="form.hasControl" placeholder="请输入有电气控制" />
-        </el-form-item>
+  <el-select
+    v-model="form.hasControl"
+    placeholder="请选择是否有电气控制"
+    style="width: 320px"
+  >
+    <el-option label="是" value="是"></el-option>
+    <el-option label="否" value="否"></el-option>
+  </el-select>
+</el-form-item>
         <el-form-item label="备注" prop="notes">
           <el-input v-model="form.notes" placeholder="请输入备注" />
         </el-form-item>
@@ -507,6 +522,9 @@ const data = reactive({
     hasPit: [
       { required: true, message: "有无坑不能为空", trigger: "blur" }
     ],
+     hasControl: [
+      { required: true, message: "请选择是否有电气控制", trigger: "change" }
+    ]
   }
 })
 
@@ -653,6 +671,14 @@ function reset() {
 
 /** 搜索按钮操作 */
 function handleQuery() {
+   if (queryParams.value.hasControl === "是") {
+    queryParams.value.hasControl = 1;
+  } else if (queryParams.value.hasControl === "否") {
+    queryParams.value.hasControl = 0;
+  } else {
+    queryParams.value.hasControl = null; // 清空时传null，避免后端接收空字符串
+  }
+
   queryParams.value.pageNum = 1
   getList()
 }
@@ -660,6 +686,7 @@ function handleQuery() {
 /** 重置按钮操作 */
 function resetQuery() {
   proxy.resetForm("queryRef")
+  queryParams.value.hasControl = null;
   handleQuery()
 }
 
@@ -682,9 +709,12 @@ function handleUpdate(row) {
   reset()
   const _id = row.id || ids.value
   getTransfer(_id).then(response => {
-    form.value = response.data
-    open.value = true
-    title.value = "修改摆渡车"
+   const resData = response.data;
+    // 新增：转换hasControl回显值
+    resData.hasControl = resData.hasControl === 1 ? "是" : "否";
+    form.value = resData; // 赋值后下拉框自动匹配“是/否”
+    open.value = true;
+    title.value = "修改摆渡车";
   })
 }
 
@@ -692,18 +722,25 @@ function handleUpdate(row) {
 function submitForm() {
   proxy.$refs["transferRef"].validate(valid => {
     if (valid) {
+      // 新增：构造转换后的数据（重点处理hasControl）
+      const submitData = {
+        ...form.value,
+        hasControl: form.value.hasControl === "是" ? 1 : 0
+      };
+
+      // 原有提交逻辑：用submitData替换form.value
       if (form.value.id != null) {
-        updateTransfer(form.value).then(response => {
-          proxy.$modal.msgSuccess("修改成功")
-          open.value = false
-          getList()
-        })
+        updateTransfer(submitData).then(response => { // 传转换后的数据
+          proxy.$modal.msgSuccess("修改成功");
+          open.value = false;
+          getList();
+        });
       } else {
-        addTransfer(form.value).then(response => {
-          proxy.$modal.msgSuccess("新增成功")
-          open.value = false
-          getList()
-        })
+        addTransfer(submitData).then(response => { // 传转换后的数据
+          proxy.$modal.msgSuccess("新增成功");
+          open.value = false;
+          getList();
+        });
       }
     }
   })

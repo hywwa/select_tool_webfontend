@@ -34,13 +34,20 @@
         </el-select>
       </el-form-item>
       <el-form-item label="移砖行程" prop="travelDistance">
-        <el-input
-          v-model="queryParams.travelDistance"
-          placeholder="请输入移砖行程(mm)"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
+  <el-select
+    v-model="queryParams.travelDistance"
+    placeholder="请选择移砖行程"
+    clearable
+    style="width: 180px"
+  >
+    <el-option
+      v-for="item in travelDistanceOptions"
+      :key="item.value"
+      :label="item.label"
+      :value="item.value"
+    ></el-option>
+  </el-select>
+</el-form-item>
       <!-- 样式改为下拉选择 -->
       <el-form-item label="样式" prop="style">
         <el-select
@@ -73,6 +80,21 @@
           ></el-option>
         </el-select>
       </el-form-item>
+      <el-form-item label="叉砖口内空" prop="forkOpening">
+  <el-select
+    v-model="queryParams.forkOpening"
+    placeholder="请选择叉砖口内空"
+    clearable
+    style="width: 180px"
+  >
+    <el-option
+      v-for="item in forkOpeningOptions"
+      :key="item.value"
+      :label="item.label"
+      :value="item.value"
+    ></el-option>
+  </el-select>
+</el-form-item>
       <el-form-item label="提升速比" prop="liftRatio">
         <el-input
           v-model="queryParams.liftRatio"
@@ -133,14 +155,6 @@
         <el-input
           v-model="queryParams.suctionCupType"
           placeholder="请输入吸盘形式"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="吸盘大小" prop="suctionCupSize">
-        <el-input
-          v-model="queryParams.suctionCupSize"
-          placeholder="请输入吸盘大小(mm)"
           clearable
           @keyup.enter="handleQuery"
         />
@@ -272,8 +286,29 @@
           </div>
         </el-form-item>
         <el-form-item label="移砖行程" prop="travelDistance">
-          <el-input v-model="form.travelDistance" placeholder="请输入移砖行程(mm)" />
-        </el-form-item>
+  <div class="flex items-center">
+    <el-select
+      v-model="form.travelDistance"
+      placeholder="请选择移砖行程"
+      style="width: 320px"
+    >
+      <el-option
+        v-for="item in travelDistanceOptions"
+        :key="item.value"
+        :label="item.label"
+        :value="item.value"
+      ></el-option>
+    </el-select>
+    <el-button
+      type="text"
+      icon="Setting"
+      @click="openDictDialog('移砖行程')"
+      style="margin-left: 10px"
+    >
+      管理
+    </el-button>
+  </div>
+</el-form-item>
         <!-- 样式改为下拉选择+管理按钮 -->
         <el-form-item label="样式" prop="style">
           <div class="flex items-center">
@@ -364,8 +399,29 @@
           <el-input v-model="form.vacuumGeneratorModel" placeholder="请输入真空发生器型号" />
         </el-form-item>
         <el-form-item label="叉砖口内空" prop="forkOpening">
-          <el-input v-model="form.forkOpening" placeholder="请输入叉砖口内空(mm)" />
-        </el-form-item>
+  <div class="flex items-center">
+    <el-select
+      v-model="form.forkOpening"
+      placeholder="请选择叉砖口内空"
+      style="width: 320px"
+    >
+      <el-option
+        v-for="item in forkOpeningOptions"
+        :key="item.value"
+        :label="item.label"
+        :value="item.value"
+      ></el-option>
+    </el-select>
+    <el-button
+      type="text"
+      icon="Setting"
+      @click="openDictDialog('叉砖口宽度')"
+      style="margin-left: 10px"
+    >
+      管理
+    </el-button>
+  </div>
+</el-form-item>
         <el-form-item label="备注" prop="notes">
           <el-input v-model="form.notes" type="textarea" placeholder="请输入内容" />
         </el-form-item>
@@ -394,6 +450,8 @@
             <el-option label="最大砖宽" value="最大砖宽"></el-option>
             <el-option label="样式" value="样式"></el-option>
             <el-option label="工位数" value="工位数"></el-option>
+             <el-option label="移砖行程" value="移砖行程"></el-option>
+    <el-option label="叉砖口内空" value="叉砖口宽度"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="字典值" prop="itemName">
@@ -458,7 +516,9 @@ const { proxy } = getCurrentInstance()
 const dictOptions = reactive({
   brickSpecOptions: [],    // 最大砖宽字典选项
   styleOptions: [],        // 样式字典选项
-  workstationCountOptions: [] // 工位数字典选项
+  workstationCountOptions: [], // 工位数字典选项
+   travelDistanceOptions: [], // 移砖行程字典选项（新增）
+  forkOpeningOptions: []   // 叉砖口内空字典选项（新增）
 })
 const dictDialog = reactive({
   open: false,             // 字典管理弹窗开关
@@ -522,20 +582,23 @@ const data = reactive({
     materialDescription: [
       { required: true, message: "物料描述不能为空", trigger: "blur" }
     ],
-    brickSpec: [
-      { required: true, message: "最大砖宽不能为空", trigger: "change" } // 改为change触发
+     travelDistance: [
+      { required: true, message: "移砖行程不能为空", trigger: "change" }
     ],
+    // brickSpec: [
+    //   { required: true, message: "最大砖宽不能为空", trigger: "change" } // 改为change触发
+    // ],
     style: [
       { required: true, message: "样式不能为空", trigger: "change" } // 改为change触发
     ],
-    workstationCount: [
-      { required: true, message: "工位数不能为空", trigger: "change" } // 改为change触发
-    ],
+    // workstationCount: [
+    //   { required: true, message: "工位数不能为空", trigger: "change" } // 改为change触发
+    // ],
   }
 })
 
 const { queryParams, form, rules } = toRefs(data)
-const { brickSpecOptions, styleOptions, workstationCountOptions } = toRefs(dictOptions)
+const { brickSpecOptions, styleOptions, workstationCountOptions, travelDistanceOptions, forkOpeningOptions} = toRefs(dictOptions)
 
 /** 加载字典选项 */
 function loadDictOptions() {
@@ -558,6 +621,29 @@ function loadDictOptions() {
   // 加载“工位数”字典（Category=工位数）
   listFixeddropdownitems({ category: "工位数" }).then(res => {
     dictOptions.workstationCountOptions = res.rows.map(item => ({
+      label: item.itemName,
+      value: item.itemName
+    }));
+  });
+
+   listFixeddropdownitems({ 
+    category: "移砖行程",
+    pageNum: 1,  // 避免分页，加载全部数据
+    pageSize: 1000
+  }).then(res => {
+    dictOptions.travelDistanceOptions = res.rows.map(item => ({
+      label: item.itemName,
+      value: item.itemName
+    }));
+  });
+
+  // 新增：加载“叉砖口内空”字典
+  listFixeddropdownitems({ 
+    category: "叉砖口宽度",
+    pageNum: 1,
+    pageSize: 1000
+  }).then(res => {
+    dictOptions.forkOpeningOptions = res.rows.map(item => ({
       label: item.itemName,
       value: item.itemName
     }));
