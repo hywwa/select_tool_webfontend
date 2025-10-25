@@ -905,6 +905,9 @@ const productionLineId = ref(null);
 const selectionRecordId = ref(0); // 初始化ID为0
 const isQuoted = ref('0'); // 报价状态：0-未报价，1-已报价
 
+  const currentProjectName = ref('')
+    currentProjectName.value = route.query.projectName || ''
+
 // 步骤控制
 const currentStep = ref(1);
 const showSearchResult = ref(false);
@@ -1547,12 +1550,42 @@ const handleExportTechnicalAttachment = async () => {
       background: 'rgba(255, 255, 255, 0.8)'
     })
 
-    // 3. 调用导出接口（获取Blob流）
-    const blob = await exportEquipmentTechnicalAttachment()
+    // 3. 核心：构造设备ID+数量参数（与导出设备清单格式一致）
+    const exportParams = {
+      brick: [],    // 砖机
+      transport: [],// 运输车
+      transfer: [], // 摆渡车
+      lift: []      // 拍齐顶升
+    };
+
+    // 按设备类型分组，填充ID和数量
+    selectedDevices.value.forEach(device => {
+      switch (device.type) {
+        case '砖机':
+          exportParams.brick.push({
+            id: device.id,        // 设备ID
+            quantity: device.quantity // 设备数量
+          });
+          break;
+        case '运输车':
+          exportParams.transport.push({ id: device.id, quantity: device.quantity });
+          break;
+        case '摆渡车':
+          exportParams.transfer.push({ id: device.id, quantity: device.quantity });
+          break;
+        case '拍齐顶升':
+          exportParams.lift.push({ id: device.id, quantity: device.quantity });
+          break;
+      }
+    });
+
+    // 4. 调用导出接口（传递构造好的参数）
+    const blob = await exportEquipmentTechnicalAttachment(exportParams);
 
     // 4. 生成动态文件名
     const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '')
-    const fileName = `${dateStr}-沙特RAK-窑后储砖线技术附件.docx`
+  
+    const fileName = `${dateStr}-${currentProjectName.value}-窑后储砖线技术附件.docx`
 
     // 5. 触发文件下载
     downloadExportFile(blob, fileName)
@@ -1588,26 +1621,53 @@ const handleExportQuotationList = async () => {
       background: 'rgba(255, 255, 255, 0.8)'
     })
 
-    // 3. 调用报价单导出接口
-    const blob = await exportQuotation()
+    // 3. 核心：构造参数（字段名与后端QuotationDynamicParamsVO完全匹配）
+    const exportParams = {
+      brickMachines: [],  // 对应后端brickMachines（原brick）
+      transportVehicles: [],  // 对应后端transportVehicles（原transport）
+      ferryVehicles: [],  // 对应后端ferryVehicles（原transfer）
+      // lift: []  // 拍齐顶升后端未处理，可删除（若后端后续支持再加）
+    };
 
-    // 4. 生成动态文件名
+    // 按设备类型分组，填充ID和数量（修改字段名映射）
+    selectedDevices.value.forEach(device => {
+      const deviceItem = { id: device.id, quantity: device.quantity };
+      switch (device.type) {
+        case '砖机':
+          exportParams.brickMachines.push(deviceItem); // 对应后端brickMachines
+          break;
+        case '运输车':
+          exportParams.transportVehicles.push(deviceItem); // 对应后端transportVehicles
+          break;
+        case '摆渡车':
+          exportParams.ferryVehicles.push(deviceItem); // 对应后端ferryVehicles
+          break;
+        // case '拍齐顶升':  // 后端未处理拍齐顶升，暂时注释
+        //   exportParams.lift.push(deviceItem);
+        //   break;
+      }
+    });
+
+    // 4. 调用报价单导出接口（传递修改后的参数）
+    const blob = await exportQuotation(exportParams);
+
+    // 5. 生成动态文件名
     const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '')
-    const fileName = `${dateStr}-沙特RAK-窑后储砖报价单.xlsx`
+    const fileName = `${dateStr}-${currentProjectName.value}-窑后储砖报价单.xlsx`
 
-    // 5. 触发文件下载
+    // 6. 触发文件下载
     downloadExportFile(blob, fileName)
 
-    // 6. 导出成功提示
+    // 7. 导出成功提示
     ElMessage.success('报价单Excel导出成功！')
 
   } catch (error) {
-    // 7. 导出失败处理
+    // 8. 导出失败处理
     ElMessage.error(`导出失败：${error.message || '请稍后重试'}`)
     console.error('报价单导出接口异常：', error)
 
   } finally {
-    // 8. 清理状态
+    // 9. 清理状态
     isQuotationExporting.value = false
     if (loadingInstance) loadingInstance.close()
   }
@@ -1722,9 +1782,9 @@ const exportSelected = async () => {
 
     // 调用导出API
     const blob = await exportSelectedDevices(exportData);
-    
+     const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '')
     // 处理下载
-    downloadExportFile(blob, `设备选型清单_${new Date().getTime()}.xlsx`);
+    downloadExportFile(blob, `${currentProjectName.value}-储砖系统机械设备清单${dateStr}.xlsx`);
     
     fullscreenLoading.value = false;
     ElMessage.success('导出成功，已创建选型记录');

@@ -42,3 +42,15 @@ export function delTransport(id) {
     method: 'delete'
   })
 }
+
+// 新增：导入运输车数据
+export function importTransport(data) {
+  return request({
+    url: '/device/transport/importData', // 对应后端Controller的请求路径
+    method: 'post',
+    headers: {
+      'Content-Type': 'multipart/form-data' // 保持表单上传格式，与砖机接口一致
+    },
+    data: data // data为包含文件和updateSupport参数的FormData对象
+  })
+}

@@ -1,43 +1,32 @@
 import request from '@/utils/request'
 
 /**
- * 导出设备技术附件Word文档
+ * 导出设备技术附件Word文档（POST方式传递复杂参数）
+ * @param {Object} params - 导出参数（包含砖机、运输车等设备的ID和数量）
  * @returns {Promise} - 返回导出的Word文档blob对象
  */
-export function exportEquipmentTechnicalAttachment() {
+export function exportEquipmentTechnicalAttachment(params) {
   return request({
     url: '/api/word/export',
-    method: 'get',
-    responseType: 'blob'  // 重要：指定响应类型为blob，用于处理二进制文件
+    method: 'post',  // 改为POST请求
+    data: params,    // 通过请求体传递参数（而非URL查询字符串）
+    responseType: 'blob'  // 保持二进制响应类型
   })
 }
 
-/**
- * 下载导出的文件（通用方法，可用于任何blob类型文件下载）
- * @param {Blob} blob - 文件的blob对象
- * @param {String} fileName - 下载的文件名（包含扩展名）
- * @example
- * // 使用示例
- * exportEquipmentTechnicalAttachment().then(blob => {
- *   downloadExportFile(blob, `设备技术附件_${new Date().toLocaleDateString()}.docx`)
- * }).catch(error => {
- *   console.error('导出失败:', error)
- * })
- */
+// 下载方法无需修改
 export const downloadExportFile = (blob, fileName) => {
   try {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
 
-    // 兼容IE浏览器
     if (window.navigator.msSaveOrOpenBlob) {
       window.navigator.msSaveOrOpenBlob(blob, fileName);
       window.URL.revokeObjectURL(url);
       return;
     }
 
-    // 主流浏览器处理
     a.setAttribute('download', fileName);
     a.style.display = 'none';
     document.body.appendChild(a);
@@ -49,4 +38,3 @@ export const downloadExportFile = (blob, fileName) => {
     throw new Error('下载文件时发生错误，请稍后重试');
   }
 };
-    

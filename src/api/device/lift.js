@@ -42,3 +42,14 @@ export function delLift(id) {
     method: 'delete'
   })
 }
+
+export function importLift(data) {
+  return request({
+    url: '/device/lift/importData',
+    method: 'post',
+    headers: {
+      'Content-Type': 'multipart/form-data' // 表单上传格式
+    },
+    data: data
+  })
+}

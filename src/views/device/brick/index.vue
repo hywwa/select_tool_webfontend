@@ -206,6 +206,8 @@
           v-hasPermi="['device:brick:export']"
         >导出</el-button>
       </el-col>
+       <el-col :span="1.5">
+       <el-button type="info" icon="Upload" @click="handleImport" v-hasPermi="['device:brick:add']">导入</el-button></el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -250,6 +252,39 @@
       v-model:limit="queryParams.pageSize"
       @pagination="getList"
     />
+
+ <!-- 2. 修改弹窗绑定：upload.open → importDialog.open -->
+<el-dialog
+  :title="importDialog.title"
+  v-model="importDialog.open"
+  width="400px"
+  append-to-body
+>
+     <el-upload
+  ref="upload" 
+  :limit="1"
+  accept=".xlsx, .xls"
+  :headers="importDialog.headers" 
+  :action="importDialog.url + '?updateSupport=' + importDialog.updateSupport"  
+  :disabled="importDialog.isUploading"  
+  :on-progress="handleFileUploadProgress"
+  :on-success="handleFileSuccess"
+  :auto-upload="false"
+  drag
+>
+        <i class="el-icon-upload"></i>
+        <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+        <div class="el-upload__tip text-center" slot="tip">
+          <el-checkbox v-model="importDialog.updateSupport" />是否更新已存在的砖机数据
+          <br />
+          <span>仅允许导入xls、xlsx格式文件。</span>
+        </div>
+      </el-upload>
+      <div slot="footer" class="dialog-footer">
+  <el-button @click="importDialog.open = false">取 消</el-button>
+  <el-button type="primary" @click="submitFileForm">确 定</el-button>
+</div>
+    </el-dialog>
 
     <!-- 添加或修改砖机对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
@@ -497,6 +532,8 @@
 
 <script setup name="Brick">
 import { listBrick, getBrick, delBrick, addBrick, updateBrick } from "@/api/device/brick"
+import { importBrick} from "@/api/device/brick"
+import { getToken } from "@/utils/auth";
 // 导入字典相关API
 import { 
   listFixeddropdownitems, 
@@ -535,6 +572,17 @@ const dictDialog = reactive({
   currentCategory: "",     // 当前操作的字典分类
   dictList: []             // 当前分类的字典列表（弹窗内显示）
 })
+
+// 1. 修改响应式变量名：upload → importDialog
+const importDialog = reactive({
+  open: false,        // 控制弹窗显示/隐藏
+  title: "砖机导入",  // 弹窗标题
+  isUploading: false, // 是否正在上传
+  updateSupport: false, // 是否覆盖已有数据
+  headers: { Authorization: "Bearer " + getToken() }, // 认证头
+  url: import.meta.env.VITE_APP_BASE_API + "/device/brick/importData" // 导入接口地址
+})
+
 
 // 原有变量
 const brickList = ref([])
@@ -843,6 +891,36 @@ function handleExport() {
   }, `brick_${new Date().getTime()}.xlsx`)
 }
 
+// 3. 修改导入按钮事件：upload → importDialog
+const handleImport = () => {
+  importDialog.title = "砖机导入"
+  importDialog.open = true // 控制弹窗显示
+}
+
+
+// 4. 文件上传中回调：upload → importDialog
+const handleFileUploadProgress = (event, file, fileList) => {
+  importDialog.isUploading = true
+}
+
+// 5. 文件上传成功回调：upload → importDialog
+const handleFileSuccess = (response) => {
+  importDialog.open = false // 关闭弹窗
+  importDialog.isUploading = false
+  proxy.$refs.upload.clearFiles() // 这里ref还是upload，无需修改
+  proxy.$alert(
+    `<div style='overflow: auto;max-height: 70vh;padding: 10px;'>${response.msg || '导入成功'}</div>`, 
+    "导入结果", 
+    { dangerouslyUseHTMLString: true }
+  )
+  getList()
+}
+
+// 新增：提交上传文件
+const submitFileForm = () => {
+  proxy.$refs.upload.submit()
+}
+
 // 初始化：先加载字典，再加载砖机列表
 loadDictOptions();
 getList()
@@ -858,5 +936,15 @@ getList()
 }
 .mb10 {
   margin-bottom: 10px;
+}
+.operate-buttons {
+  display: flex;
+  gap: 8px;
+}
+.el-upload {
+  width: 100%;
+}
+.dialog-footer {
+  text-align: right;
 }
 </style>

@@ -42,3 +42,16 @@ export function delBrick(id) {
     method: 'delete'
   })
 }
+
+
+// 新增：导入砖机数据
+export function importBrick(data) {
+  return request({
+    url: '/device/brick/importData',
+    method: 'post',
+    headers: {
+      'Content-Type': 'multipart/form-data' // 表单上传格式
+    },
+    data: data
+  })
+}

@@ -158,6 +158,15 @@
           v-hasPermi="['device:lift:export']"
         >导出</el-button>
       </el-col>
+      <el-col :span="1.5">
+    <el-button
+      type="info"
+      plain
+      icon="Upload"
+      @click="handleImport"
+      v-hasPermi="['device:lift:add']"
+    >导入</el-button>
+  </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -194,6 +203,38 @@
       v-model:limit="queryParams.pageSize"
       @pagination="getList"
     />
+
+    <el-dialog
+  :title="importDialog.title"
+  v-model="importDialog.open"
+  width="400px"
+  append-to-body
+>
+  <el-upload
+    ref="upload"
+    :limit="1"
+    accept=".xlsx, .xls"
+    :headers="importDialog.headers"
+    :action="importDialog.url + '?updateSupport=' + importDialog.updateSupport"
+    :disabled="importDialog.isUploading"
+    :on-progress="handleFileUploadProgress"
+    :on-success="handleFileSuccess"
+    :auto-upload="false"
+    drag
+  >
+    <i class="el-icon-upload"></i>
+    <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+    <div class="el-upload__tip text-center" slot="tip">
+      <el-checkbox v-model="importDialog.updateSupport" />是否更新已存在的拍齐顶升数据
+      <br />
+      <span>仅允许导入xls、xlsx格式文件。</span>
+    </div>
+  </el-upload>
+  <div slot="footer" class="dialog-footer">
+    <el-button @click="importDialog.open = false">取 消</el-button>
+    <el-button type="primary" @click="submitFileForm">确 定</el-button>
+  </div>
+</el-dialog>
 
     <!-- 添加或修改拍齐顶升对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
@@ -329,7 +370,9 @@
 </template>
 
 <script setup name="Lift">
-import { listLift, getLift, delLift, addLift, updateLift } from "@/api/device/lift"
+import { listLift, getLift, delLift, addLift, updateLift, importLift } from "@/api/device/lift"
+// 新增：导入token工具（用于请求头认证）
+import { getToken } from "@/utils/auth";
 // 导入字典相关API
 import { 
   listFixeddropdownitems, 
@@ -361,6 +404,15 @@ const dictDialog = reactive({
   },
   currentCategory: "",     // 当前操作的字典分类
   dictList: []             // 当前分类的字典列表（弹窗内显示）
+})
+
+const importDialog = reactive({
+  open: false,                // 弹窗开关
+  title: "拍齐顶升导入",      // 弹窗标题
+  isUploading: false,         // 是否正在上传
+  updateSupport: false,       // 是否覆盖已有数据
+  headers: { Authorization: "Bearer " + getToken() }, // 认证请求头
+  url: import.meta.env.VITE_APP_BASE_API + "/device/lift/importData" // 导入接口地址
 })
 
 // 原有变量
@@ -612,6 +664,35 @@ function handleExport() {
   proxy.download('device/lift/export', {
     ...queryParams.value
   }, `lift_${new Date().getTime()}.xlsx`)
+}
+
+const handleImport = () => {
+  importDialog.title = "拍齐顶升导入"
+  importDialog.open = true
+}
+
+// 新增：文件上传中回调（显示上传状态）
+const handleFileUploadProgress = (event, file, fileList) => {
+  importDialog.isUploading = true
+}
+
+// 新增：文件上传成功回调（处理结果并刷新列表）
+const handleFileSuccess = (response) => {
+  importDialog.open = false
+  importDialog.isUploading = false
+  proxy.$refs.upload.clearFiles() // 清空上传文件列表
+  // 显示导入结果（支持HTML格式，展示详细信息）
+  proxy.$alert(
+    `<div style='overflow: auto;max-height: 70vh;padding: 10px;'>${response.msg || '导入成功'}</div>`,
+    "导入结果",
+    { dangerouslyUseHTMLString: true }
+  )
+  getList() // 重新加载拍齐顶升列表，显示最新数据
+}
+
+// 新增：提交上传文件（触发上传操作）
+const submitFileForm = () => {
+  proxy.$refs.upload.submit()
 }
 
 // 初始化：先加载字典，再加载拍齐顶升列表

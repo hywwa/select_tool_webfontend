@@ -42,3 +42,14 @@ export function delTransfer(id) {
     method: 'delete'
   })
 }
+
+export function importTransfer(data) {
+  return request({
+    url: '/device/transfer/importData',
+    method: 'post',
+    headers: {
+      'Content-Type': 'multipart/form-data' // 表单上传格式
+    },
+    data: data
+  })
+}

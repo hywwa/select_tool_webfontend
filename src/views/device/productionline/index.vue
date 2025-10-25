@@ -732,8 +732,8 @@ function goToSelectionPage(row) {
     query: {
       productionLineId: row.projectId,
       recordId: row.recordId,
-      status:row.isQuoted
-
+      status:row.isQuoted,
+      projectName:currentProjectName.value
     }
   })
 }

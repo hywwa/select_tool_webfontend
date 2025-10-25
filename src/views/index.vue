@@ -27,17 +27,7 @@
 
       <!-- 功能入口区 -->
       <el-col :sm="24" :lg="12" class="features-column">
-        <div class="features-grid">
-           <div class="feature-card" @mouseenter="featureHover = 'analysis'" @mouseleave="featureHover = ''">
-            <div class="feature-icon" :class="{ active: featureHover === 'analysis' }">
-              <i class="el-icon-line-chart"></i>
-            </div>
-            <h3>选型测试</h3>
-            <p>快速选型</p>
-            <el-button type="primary" size="small" @click="$router.push('/selectDevice/DeviceSearch/DeviceSearch/DeviceSearch')">
-              开始选型
-            </el-button>
-          </div>
+        <div class="features-grid">          
 
           <div class="feature-card" @mouseenter="featureHover = 'project'" @mouseleave="featureHover = ''">
             <div class="feature-icon" :class="{ active: featureHover === 'project' }">
@@ -47,6 +37,17 @@
             <p>高效管理选型项目，快速生成选型报价成果</p>
             <el-button type="primary" size="small" @click="$router.push('/selectDevice/project')">
               立即进入
+            </el-button>
+          </div>
+
+          <div class="feature-card" @mouseenter="featureHover = 'analysis'" @mouseleave="featureHover = ''">
+            <div class="feature-icon" :class="{ active: featureHover === 'analysis' }">
+              <i class="el-icon-line-chart"></i>
+            </div>
+            <h3>附件管理</h3>
+            <p>快速管理设备的附件数据</p>
+            <el-button type="primary" size="small" @click="$router.push('/attachment/attachments')">
+              管理附件
             </el-button>
           </div>
           
