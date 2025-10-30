@@ -301,10 +301,10 @@
           <el-input v-model="form.rubberThickness" placeholder="请输入挡砖胶皮厚度(mm)" />
         </el-form-item>
         <el-form-item label="备注" prop="notes">
-          <el-input v-model="form.notes" type="textarea" placeholder="请输入内容" />
+          <el-input v-model="form.notes" type="textarea" placeholder="请输入内容" :rows="5"/>
         </el-form-item>
         <el-form-item label="在用项目" prop="usedProjects">
-          <el-input v-model="form.usedProjects" type="textarea" placeholder="请输入内容" />
+          <el-input v-model="form.usedProjects" type="textarea" placeholder="请输入内容" :rows="3"/>
         </el-form-item>
       </el-form>
       <template #footer>

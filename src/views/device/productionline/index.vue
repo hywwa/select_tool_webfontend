@@ -205,7 +205,7 @@
       type="primary" 
       icon="Document" 
       @click="goToSelectionDetail(scope.row)" 
-      :disabled="!scope.row.recordId || scope.row.recordId === 0 || scope.row.isQuoted === 0"
+      :disabled="!scope.row.recordId || scope.row.isQuoted === 0"
       v-hasPermi="['device:records:query']"
       class="table-action-btn"
     >查看选型详情</el-button>

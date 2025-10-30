@@ -458,7 +458,7 @@
   </div>
 </el-form-item>
         <el-form-item label="备注" prop="notes">
-          <el-input v-model="form.notes" type="textarea" placeholder="请输入内容" />
+          <el-input v-model="form.notes" type="textarea" placeholder="请输入内容"  :rows="4"/>
         </el-form-item>
         <el-form-item label="在用项目" prop="usedProjects">
           <el-input v-model="form.usedProjects" type="textarea" placeholder="请输入内容" />

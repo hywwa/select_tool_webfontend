@@ -902,7 +902,7 @@ if (instance) {
 // 路由实例和参数存储
 const route = useRoute()
 const productionLineId = ref(null);
-const selectionRecordId = ref(0); // 初始化ID为0
+const selectionRecordId = ref(null); // 初始化ID为0
 const isQuoted = ref('0'); // 报价状态：0-未报价，1-已报价
 
   const currentProjectName = ref('')
@@ -1682,59 +1682,6 @@ const exportSelected = async () => {
       fullscreenLoading.value = false;
       return;
     }
-
-    // 1. 创建选型主记录
-    const selectionRecord = createSelectionRecordData();
-    const recordResponse = await addRecords(selectionRecord);
-    console.log("后端返回的完整响应：", recordResponse);
-    if (!recordResponse || !recordResponse.recordId) {
-      throw new Error('创建选型记录失败，未返回有效ID');
-    }
-    const newRecordId = recordResponse.recordId;
-    console.log('创建选型主记录成功，ID:', newRecordId);
-
-
-    // 2. 向中间表插入设备记录（循环单条添加）
-    // 2.1 转换设备类型为数字
-    const deviceTypeMap = {
-      '砖机': 1,
-      '运输车': 2,
-      '摆渡车': 3,
-      '拍齐顶升': 4
-    };
-
-    // 2.2 循环添加每条设备记录
-    const addPromises = selectedDevices.value.map(device => {
-      // 构造单条记录数据
-      const deviceData = {
-        recordId: newRecordId,
-        materialCode: device.materialCode,
-        deviceType: deviceTypeMap[device.type],
-        cartQuantity: device.quantity.toString(),
-        addTime: formatDateToBackend(new Date())
-      };
-      
-      return addDevices(deviceData);
-    });
-
-    // 等待所有添加操作完成
-    const addResponses = await Promise.all(addPromises);
-
-    // 检查响应状态
-    const failedRecords = addResponses.filter(res => res.code !== 200);
-    if (failedRecords.length > 0) {
-      throw new Error(`部分设备记录保存失败，失败数量: ${failedRecords.length}`);
-    }
-    console.log('设备记录已保存到中间表，数量:', selectedDevices.value.length);
-
-
-    // 3. 关联产线项目
-    if (productionLineId.value) {
-         await updateManagement({
-          projectId: productionLineId.value,
-          recordId: newRecordId
-        });
-    }
     // 4. 执行导出操作
     const selectedDevicesMap = {
       brick: [],
@@ -1853,6 +1800,59 @@ const formatDateToBackend = (date) => {
 const finishProcess = async () => {
   fullscreenLoading.value = true; // 显示加载状态
   try {
+      // 1. 创建选型主记录
+    const selectionRecord = createSelectionRecordData();
+    const recordResponse = await addRecords(selectionRecord);
+    console.log("后端返回的完整响应：", recordResponse);
+    if (!recordResponse || !recordResponse.recordId) {
+      throw new Error('创建选型记录失败，未返回有效ID');
+    }
+    const newRecordId = recordResponse.recordId;
+    console.log('创建选型主记录成功，ID:', newRecordId);
+
+
+    // 2. 向中间表插入设备记录（循环单条添加）
+    // 2.1 转换设备类型为数字
+    const deviceTypeMap = {
+      '砖机': 1,
+      '运输车': 2,
+      '摆渡车': 3,
+      '拍齐顶升': 4
+    };
+
+    // 2.2 循环添加每条设备记录
+    const addPromises = selectedDevices.value.map(device => {
+      // 构造单条记录数据
+      const deviceData = {
+        recordId: newRecordId,
+        materialCode: device.materialCode,
+        deviceType: deviceTypeMap[device.type],
+        cartQuantity: device.quantity.toString(),
+        addTime: formatDateToBackend(new Date())
+      };
+      
+      return addDevices(deviceData);
+    });
+
+    // 等待所有添加操作完成
+    const addResponses = await Promise.all(addPromises);
+
+    // 检查响应状态
+    const failedRecords = addResponses.filter(res => res.code !== 200);
+    if (failedRecords.length > 0) {
+      throw new Error(`部分设备记录保存失败，失败数量: ${failedRecords.length}`);
+    }
+    console.log('设备记录已保存到中间表，数量:', selectedDevices.value.length);
+
+
+    // 3. 关联产线项目
+    if (productionLineId.value) {
+         await updateManagement({
+          projectId: productionLineId.value,
+          recordId: newRecordId
+        });
+    }
+
     // 1. 若存在产线ID，更新产线的选型状态（isQuoted：0→1）
     if (productionLineId.value) {
       await updateManagement({
@@ -1948,7 +1948,7 @@ onMounted(() => {
     ([newProductionLineId, newRecordId, newStatus]) => {
       // 保存产线ID、记录ID和报价状态
       productionLineId.value = newProductionLineId ? Number(newProductionLineId) : null;
-      selectionRecordId.value = newRecordId ? Number(newRecordId) : 0;
+      selectionRecordId.value = newRecordId ? Number(newRecordId) : null;
       isQuoted.value = newStatus || '0'; // 默认未报价状态
       
       console.log('当前产线ID:', productionLineId.value);

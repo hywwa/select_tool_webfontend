@@ -82,13 +82,17 @@
         />
       </el-form-item>
       <el-form-item label="有无坑" prop="hasPit">
-        <el-input
-          v-model="queryParams.hasPit"
-          placeholder="请输入有无坑"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
+        <el-select
+    v-model="queryParams.hasPit"
+    placeholder="请选择有无坑"
+    clearable
+    style="width: 180px"
+    @change="handleQuery"
+  >
+    <el-option label="有坑" value="有坑"></el-option>
+    <el-option label="无坑" value="无坑"></el-option>
+  </el-select>
+</el-form-item>
       <el-form-item label="定位模式" prop="positioning">
         <el-input
           v-model="queryParams.positioning"
@@ -345,30 +349,34 @@
           </div>
         </el-form-item>
         <!-- 最大砖宽度改为下拉选择+管理按钮 -->
-        <el-form-item label="最大砖宽" prop="maxBrickWidth">
-          <div class="flex items-center">
-            <el-select
-              v-model="form.maxBrickWidth"
-              placeholder="请选择最大砖宽"
-              style="width: 320px"
-            >
-              <el-option
-                v-for="item in maxBrickWidthOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              ></el-option>
-            </el-select>
-            <el-button
-              type="text"
-              icon="Setting"
-              @click="openDictDialog('最大砖宽度')"
-              style="margin-left: 10px"
-            >
-              管理
-            </el-button>
-          </div>
-        </el-form-item>
+        <el-form-item 
+  v-if="form.ferryKeyFeature === '升降摆渡'" 
+  label="最大砖宽" 
+  prop="maxBrickWidth"
+>
+  <div class="flex items-center">
+    <el-select
+      v-model="form.maxBrickWidth"
+      placeholder="请选择最大砖宽"
+      style="width: 320px"
+    >
+      <el-option
+        v-for="item in maxBrickWidthOptions"
+        :key="item.value"
+        :label="item.label"
+        :value="item.value"
+      ></el-option>
+    </el-select>
+    <el-button
+      type="text"
+      icon="Setting"
+      @click="openDictDialog('最大砖宽度')"
+      style="margin-left: 10px"
+    >
+      管理
+    </el-button>
+  </div>
+</el-form-item>
         <el-form-item label="摆渡车长" prop="ferryLength">
           <el-input v-model="form.ferryLength" placeholder="请输入摆渡车长度(mm)" />
         </el-form-item>
@@ -376,8 +384,15 @@
           <el-input v-model="form.trackWidth" placeholder="请输入轨道内宽(mm)" />
         </el-form-item>
         <el-form-item label="有无坑" prop="hasPit">
-          <el-input v-model="form.hasPit" placeholder="请输入有无坑" />
-        </el-form-item>
+           <el-select
+    v-model="form.hasPit"
+    placeholder="请选择有无坑"
+    style="width: 320px"
+  >
+    <el-option label="有坑" value="有坑"></el-option>
+    <el-option label="无坑" value="无坑"></el-option>
+  </el-select>
+</el-form-item>
         <el-form-item label="定位模式" prop="positioning">
           <el-input v-model="form.positioning" placeholder="请输入定位模式" />
         </el-form-item>
@@ -568,9 +583,6 @@ const data = reactive({
     ],
     ferryKeyFeature: [
       { required: true, message: "摆渡车关键特征不能为空", trigger: "change" }
-    ],
-    maxBrickWidth: [
-      { required: true, message: "最大砖宽不能为空", trigger: "change" }
     ],
     hasPit: [
       { required: true, message: "有无坑不能为空", trigger: "blur" }
@@ -774,8 +786,14 @@ function handleUpdate(row) {
 /** 提交按钮 */
 function submitForm() {
   proxy.$refs["transferRef"].validate(valid => {
-    if (valid) {
-      // 新增：构造转换后的数据（重点处理hasControl）
+     if (valid) {
+      // 2. 判断：若关键特征是“升降摆渡”，但最大砖宽未选 → 提示必填
+      if (form.value.ferryKeyFeature === '升降摆渡' && !form.value.maxBrickWidth) {
+        proxy.$modal.msgError("选择“升降摆渡”时，最大砖宽不能为空");
+        return; // 终止提交
+      }
+
+      // 3. 原有提交逻辑（不变）
       const submitData = {
         ...form.value,
         hasControl: form.value.hasControl === "是" ? 1 : 0
