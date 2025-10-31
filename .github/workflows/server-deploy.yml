@@ -35,14 +35,14 @@ jobs:
       # 5. 上传前端构建产物到服务器目标目录
       - name: 部署前端静态文件到云服务器
         run: |
-          # 5.1 测试 SSH 连接（可选，调试用）
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo 'SSH 连接成功'"
-          
-          # 5.2 确保服务器前端目录存在（你的前端路径：/www/wwwroot/select_tool/fronted/）
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "mkdir -p /www/wwwroot/select_tool/fronted/"
-          
-          # 5.3 删除服务器旧前端文件（避免缓存残留，可选但推荐）
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "rm -rf /www/wwwroot/select_tool/fronted/*"
-          
-          # 5.4 上传本地构建产物到服务器（前端构建产物默认在 dist 目录，需与实际一致）
-          scp -r ./dist/* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/select_tool/fronted/
+          # 5.1 测试 SSH 连接（添加 LC_ALL=C 解决 locale 问题）
+          LC_ALL=C ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo 'SSH 连接成功'"
+
+          # 5.2 确保服务器前端目录存在
+          LC_ALL=C ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "mkdir -p /www/wwwroot/select_tool/fronted/"
+
+          # 5.3 删除服务器旧前端文件
+          LC_ALL=C ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "rm -rf /www/wwwroot/select_tool/fronted/*"
+
+          # 5.4 上传本地构建产物到服务器
+          LC_ALL=C scp -r ./dist/* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/select_tool/fronted/
