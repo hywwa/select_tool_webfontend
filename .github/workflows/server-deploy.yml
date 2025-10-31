@@ -1,0 +1,48 @@
+name: SSH 部署前端项目到云服务器
+on:
+  push:
+    branches: [main]  # 主分支推送时自动触发前端部署
+  workflow_dispatch:  # 支持在 GitHub Actions 页面手动触发
+
+jobs:
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    concurrency: production  # 并发控制：同一时间仅1个前端部署任务运行
+    steps:
+      # 1. 拉取 GitHub 仓库代码
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      # 2. 配置 Node.js 环境（前端构建依赖，版本需与本地开发一致）
+      - name: 配置 Node.js 环境
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'  # 替换为你本地使用的 Node 版本（如 16/18，可通过 node -v 查看）
+          cache: 'npm'        # 缓存 npm 依赖，加速后续安装
+
+      # 3. 进入前端目录，安装依赖并构建静态文件
+      - name: 安装依赖并构建前端项目
+        run: |
+          npm install  # 安装 package.json 中的依赖
+          npm run build:stage  # 执行构建命令（与你本地构建命令一致，如 build/prod）
+
+      # 4. 配置 SSH 密钥（连接服务器用，与后端共用一套 Secrets 即可）
+      - name: 配置 SSH 密钥
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}  # 复用后端配置的私钥 Secrets
+
+      # 5. 上传前端构建产物到服务器目标目录
+      - name: 部署前端静态文件到云服务器
+        run: |
+          # 5.1 测试 SSH 连接（可选，调试用）
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo 'SSH 连接成功'"
+          
+          # 5.2 确保服务器前端目录存在（你的前端路径：/www/wwwroot/select_tool/fronted/）
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "mkdir -p /www/wwwroot/select_tool/fronted/"
+          
+          # 5.3 删除服务器旧前端文件（避免缓存残留，可选但推荐）
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "rm -rf /www/wwwroot/select_tool/fronted/*"
+          
+          # 5.4 上传本地构建产物到服务器（前端构建产物默认在 dist 目录，需与实际一致）
+          scp -r ./frontend/dist/* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/select_tool/fronted/
