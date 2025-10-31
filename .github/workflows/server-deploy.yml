@@ -45,4 +45,4 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "rm -rf /www/wwwroot/select_tool/fronted/*"
           
           # 5.4 上传本地构建产物到服务器（前端构建产物默认在 dist 目录，需与实际一致）
-          scp -r ./frontend/dist/* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/select_tool/fronted/
+          scp -r ./dist/* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/select_tool/fronted/
