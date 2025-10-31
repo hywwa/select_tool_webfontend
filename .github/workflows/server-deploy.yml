@@ -45,4 +45,4 @@ jobs:
           LC_ALL=C ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "rm -rf /www/wwwroot/select_tool/fronted/*"
 
           # 5.4 上传本地构建产物到服务器
-          LC_ALL=C scp -r ./dist/* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/select_tool/fronted/
+          LC_ALL=C scp -r ./dist/ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/www/wwwroot/select_tool/fronted/
